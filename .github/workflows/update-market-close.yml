@@ -1,0 +1,38 @@
+name: Update Taiwan market close
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - market-close.json
+  schedule:
+    - cron: "30 7,9 * * 1-5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-market-close
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch official TWSE and TPEx close prices
+        run: python scripts/update_market_close.py
+      - name: Commit market data when changed
+        run: |
+          if git diff --quiet -- market-close.json market-history.json; then
+            echo "No market data changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add market-close.json market-history.json
+          git commit -m "chore: update Taiwan market close"
+          git push
