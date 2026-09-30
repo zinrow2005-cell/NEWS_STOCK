@@ -49,6 +49,24 @@ for z in summary_only:
     if z['relevanceLevel']!='mention':
         raise SystemExit(f'summary-only multi-company mention should be mention: {z}')
 
+
+# v4.7.5 primary-subject regression tests.
+focused_primary=m.match_stocks('台積電法說會聚焦2奈米與AI需求','公司說明先進製程與資本支出。')
+fp=next(x for x in focused_primary if x['symbol']=='2330')
+if not fp.get('isPrimary'):
+    raise SystemExit(f'focused single-company headline should be primary: {fp}')
+
+roundup_primary=m.match_stocks('AI供應鏈焦點股：台積電、鴻海、廣達、聯發科同步受矚目','多檔大型權值股受到市場關注。')
+if any(x.get('isPrimary') for x in roundup_primary):
+    raise SystemExit(f'roundup must not have a primary stock: {roundup_primary}')
+
+lead_with_peers=m.match_stocks('台積電法說上修AI展望','供應鏈也提到鴻海與廣達後續需求。')
+lead2330=next(x for x in lead_with_peers if x['symbol']=='2330')
+if not lead2330.get('isPrimary'):
+    raise SystemExit(f'headline-only lead company should remain primary even if peers appear in summary: {lead_with_peers}')
+if any(x.get('isPrimary') for x in lead_with_peers if x['symbol']!='2330'):
+    raise SystemExit(f'summary peers must not become primary: {lead_with_peers}')
+
 rss='''<?xml version="1.0" encoding="UTF-8"?>
 <rss><channel>
 <item><title>台積電（2330）8月營收創高</title><link>https://example.com/2330</link><description>AI需求增加，營收創高。</description><pubDate>Wed, 30 Sep 2026 08:00:00 +0800</pubDate><source>測試媒體A</source></item>

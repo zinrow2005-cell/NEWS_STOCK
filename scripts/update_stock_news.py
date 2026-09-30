@@ -127,7 +127,7 @@ def _has_symbol(text_value, symbol):
 def _stock_relevance(title, summary, symbol, name, matched_count):
     """Explainable relevance score for one article -> one stock.
 
-    v4.7.4 is deliberately stricter for individual-stock searches:
+    v4.7.5 is deliberately stricter for individual-stock searches:
     - headline subject mentions dominate;
     - summary-only mentions are weak;
     - roundup/listicle headlines with many companies are aggressively demoted.
@@ -225,9 +225,21 @@ def match_stocks(title, summary):
         row['relevanceLevel']=level
         row['relevanceReasons']=reasons
     if found:
-        best=max(x['relevanceScore'] for x in found)
+        # v4.7.5 strict "主角新聞" rule:
+        # the stock must be directly named in the headline, it must be the only matched
+        # listed/OTC company directly named in that headline, and relevance must be high.
+        # This intentionally excludes broad roundups such as "台積電、鴻海、廣達...".
+        title_direct=[]
         for row in found:
-            row['isPrimary']=row['relevanceScore']==best and best>=40
+            if _has_symbol(title, row['symbol']) or (row['name'] and row['name'] in (title or '')):
+                title_direct.append(row['symbol'])
+        roundup_words = ['概念股','族群','供應鏈','焦點股','熱門股','盤中','盤後','台股','多檔','這幾檔','排行榜','漲停股','ETF']
+        broad_roundup = len(title_direct) >= 3 and any(w in (title or '') for w in roundup_words)
+        for row in found:
+            direct = row['symbol'] in title_direct
+            primary = bool(direct and len(title_direct) == 1 and row['relevanceScore'] >= 78 and not broad_roundup)
+            row['isPrimary']=primary
+            row['primaryReasons']=(['標題直接且唯一聚焦此公司'] if primary else [])
     return found
 
 def text(v):
@@ -239,7 +251,7 @@ def fetch(url, timeout=10):
     for attempt in range(2):
         try:
             req = Request(url, headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.4; +https://github.com/)',
+                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.5; +https://github.com/)',
                 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
                 'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.6',
                 'Cache-Control': 'no-cache',

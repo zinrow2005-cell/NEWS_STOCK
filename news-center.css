@@ -177,6 +177,7 @@
 @media(max-width:720px){.audit-row{grid-template-columns:1fr}.audit-row em{text-align:left}}
 
 /* v4.7.3 individual-stock relevance */
+.news-badge.relevance-primary{font-weight:900;border-color:rgba(124,58,237,.30);background:rgba(124,58,237,.11)}
 .news-badge.relevance-high{font-weight:800;border-color:rgba(22,163,74,.28);background:rgba(22,163,74,.10)}
 .news-badge.relevance-related{font-weight:700;border-color:rgba(37,99,235,.24);background:rgba(37,99,235,.08)}
 .news-badge.relevance-mention{opacity:.78;border-style:dashed}

@@ -1,15 +1,13 @@
-v4.7.4 個股新聞精準度再校正 PATCH
+NEWS_STOCK v4.7.5 主角新聞模式修補包
 
-請將本壓縮檔內容覆蓋到 GitHub Repository 根目錄。
-不包含 stock-news.json，因此不會把目前已抓到的 2657+ 則新聞覆蓋成空檔。
+請把本 ZIP 內容覆蓋到 GitHub Repository 根目錄。
+本 PATCH 不含 stock-news.json，不會把目前已抓到的新聞洗成空檔。
 
-覆蓋完成後：
-1. GitHub > Actions > Update Taiwan stock news > Run workflow
-2. 展開 Validate non-empty stock news
-3. 確認會多看到：
-   relevance 2330: high=..., related=..., mention=...
-   relevance 2317: high=..., related=..., mention=...
-   relevance 2454: high=..., related=..., mention=...
-4. 等 GitHub Pages 重新部署後 Ctrl+F5。
+覆蓋後：
+1. GitHub → Actions → Update Taiwan stock news → Run workflow。
+2. 展開 Validate non-empty stock news。
+3. 應看到：relevance 2330: primary=...、2317、2454。
+4. 等 Pages 部署後 Ctrl+F5。
+5. 新聞情報中心指定個股後，可勾選「只看主角新聞」。
 
-預設個股搜尋只顯示 high + related；要看產業型順帶新聞再勾「顯示順帶提及」。
+主角新聞採嚴格規則：標題直接且唯一聚焦該公司。若是多股整理／族群新聞，即使標題提到該股票，也不列為主角新聞。

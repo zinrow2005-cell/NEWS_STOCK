@@ -18,7 +18,7 @@ if len(items) <= 0:
 if matched <= 0:
     print('ERROR: no article matched any listed/OTC stock; pipeline is not useful'); sys.exit(4)
 
-# v4.7.4 relevance precision diagnostics for smoke stocks
+# v4.7.5 relevance + primary-subject diagnostics for smoke stocks
 for _sym in ('2330','2317','2454'):
     _counts={'high':0,'related':0,'mention':0}
     for _x in items:
@@ -26,4 +26,5 @@ for _sym in ('2330','2317','2454'):
             if str(_m.get('symbol'))==_sym:
                 _lvl=_m.get('relevanceLevel','mention')
                 _counts[_lvl]=_counts.get(_lvl,0)+1
-    print(f'relevance {_sym}: high={_counts.get("high",0)}, related={_counts.get("related",0)}, mention={_counts.get("mention",0)}')
+    _primary=sum(1 for _x in items for _m in (_x.get('matchedStocks') or []) if str(_m.get('symbol'))==_sym and _m.get('isPrimary') is True)
+    print(f'relevance {_sym}: primary={_primary}, high={_counts.get("high",0)}, related={_counts.get("related",0)}, mention={_counts.get("mention",0)}')
