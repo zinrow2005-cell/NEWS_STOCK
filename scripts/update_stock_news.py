@@ -239,6 +239,11 @@ def match_stocks(title, summary):
         first_clause = re.split(r'[｜|：:，,、；;—-]', title_text, maxsplit=1)[0]
         roundup_words = ['概念股','族群','供應鏈','焦點股','熱門股','盤中','盤後','多檔','這幾檔','排行榜','漲停股','ETF','權值股','五雄','六強','多頭股']
         market_lead_words = ['台股','大盤','加權指數','櫃買','台灣50','權值股','科技股','電子股','半導體股','AI股','盤中','盤後','收盤','開盤','指數','美股','亞股']
+        # v4.7.10: a market word appearing anywhere in a headline is NOT enough to classify
+        # the whole article as a market/sector story. Require market-led grammar, a true
+        # multi-stock roundup, or explicit sector/market action language.
+        market_action_words = ['領軍','帶動大盤','帶動指數','拖累大盤','拖累指數','齊揚','齊跌','同步走強','同步走弱','族群走強','族群走弱','族群齊漲','族群齊跌','概念股','焦點股','熱門股','多檔','這幾檔','排行榜','盤勢整理']
+        sector_theme_words = ['科技股','電子股','半導體股','AI股','權值股','金融股','航運股','生技股','記憶體族群','PCB族群','伺服器族群','供應鏈']
         # v4.7.8: separate "company is the subject" from "company event is core to investment research".
         core_event_words = [
             '營收','財報','季報','年報','EPS','每股盈餘','獲利','淨利','毛利','營益','財測',
@@ -260,6 +265,8 @@ def match_stocks(title, summary):
         corporate_event_words = core_event_words + general_event_words
         broad_roundup = len(title_direct) >= 2 and any(w in title_text for w in roundup_words)
         market_led = any(first_clause.startswith(w) or first_clause.startswith('今'+w) for w in market_lead_words)
+        has_market_action = any(w in title_text for w in market_action_words)
+        has_sector_theme = any(w in title_text for w in sector_theme_words)
         has_corp_event = any(w.lower() in title_text.lower() for w in corporate_event_words)
         has_core_event = any(w.lower() in title_text.lower() for w in core_event_words)
         has_general_event = any(w.lower() in title_text.lower() for w in general_event_words)
@@ -281,8 +288,18 @@ def match_stocks(title, summary):
             early_pos=min(positions) if positions else 999
             company_led = bool(early_pos <= 10 or (name and name in first_clause) or (sym and _has_symbol(first_clause, sym)))
 
-            # Market wrapups such as "科技股崩跌，聯發科漲300點" are never primary.
-            market_story = market_led or (any(w in title_text for w in market_lead_words) and not has_corp_event)
+            # Market/sector classification is intentionally narrow in v4.7.10.
+            # Examples that qualify:
+            # - market-led first clause: "台股大漲..."
+            # - explicit multi-stock roundup
+            # - sector/market action headline: "半導體股齊揚...", "台積電領軍權值股..."
+            # A lone word such as "台股" appearing later in an otherwise company-led headline
+            # no longer converts the whole article into market_theme.
+            market_story = bool(
+                market_led or
+                broad_roundup or
+                (has_market_action and (has_sector_theme or any(w in title_text for w in market_lead_words)))
+            )
             # Pure price-action / target-price / analyst-rating stories stay highly related, but are not company events.
             price_or_opinion_story = bool((has_price_action or has_analyst_opinion) and not has_core_event and not has_general_event)
             subject_ok = company_led and not broad_roundup and not market_story and not multi_subject_punct and not price_or_opinion_story
@@ -343,7 +360,7 @@ def fetch(url, timeout=10):
     for attempt in range(2):
         try:
             req = Request(url, headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.9; +https://github.com/)',
+                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.10; +https://github.com/)',
                 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
                 'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.6',
                 'Cache-Control': 'no-cache',

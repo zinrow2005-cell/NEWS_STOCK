@@ -119,3 +119,18 @@ for _sym in ('2330','2317','2454'):
     for t in _high_nonprimary[:4]: print(' HIGH_ONLY:', t[:160])
     print(f'--- sample {_sym} mention ({len(_mentions)}) ---')
     for t in _mentions[:3]: print(' MENTION:', t[:160])
+
+# v4.7.10 diagnostic: market_theme should no longer swallow most company matches by default.
+# This is a soft diagnostic only; some symbols can genuinely dominate market-wrap coverage.
+for _sym in ('2330','2317','2454'):
+    _rows=[]
+    for _x in items:
+        for _m in (_x.get('matchedStocks') or []):
+            if str(_m.get('symbol'))==_sym:
+                _rows.append(_m)
+    if _rows:
+        _market=sum(1 for _m in _rows if _m.get('relationNature')=='market_theme')
+        _price=sum(1 for _m in _rows if _m.get('relationNature')=='price_action')
+        _company=sum(1 for _m in _rows if _m.get('relationNature') in ('company_core','company_general'))
+        _related=sum(1 for _m in _rows if _m.get('relationNature')=='related')
+        print(f'nature-share {_sym}: company={_company}/{len(_rows)}, price={_price}/{len(_rows)}, market={_market}/{len(_rows)}, related={_related}/{len(_rows)}')

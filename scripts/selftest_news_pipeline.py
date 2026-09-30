@@ -174,3 +174,25 @@ mk2330=next(x for x in market if x['symbol']=='2330')
 if mk2330.get('isPrimary') or mk2330.get('relationNature')!='market_theme':
     raise SystemExit(f'market-led story should be market_theme and non-primary: {mk2330}')
 print('v4.7.9 company-event/price-action separation tests OK')
+
+# v4.7.10 market-theme narrowing tests.
+company_led_with_market_word=m.match_stocks('台積電先進製程獲客戶青睞，台股關注後續展望','公司技術與客戶需求受到關注。')
+cl2330=next(x for x in company_led_with_market_word if x['symbol']=='2330')
+if cl2330.get('relationNature')=='market_theme':
+    raise SystemExit(f'company-led headline with incidental market word must not be market_theme: {cl2330}')
+
+sector_led=m.match_stocks('半導體股齊揚，台積電領軍權值股走強','族群同步上漲。')
+sl2330=next(x for x in sector_led if x['symbol']=='2330')
+if sl2330.get('relationNature')!='market_theme' or sl2330.get('isPrimary'):
+    raise SystemExit(f'sector-led roundup should be market_theme and non-primary: {sl2330}')
+
+company_price=m.match_stocks('台積電股價上漲3%，台股成交量同步放大','盤中股價走強。')
+cp2330=next(x for x in company_price if x['symbol']=='2330')
+if cp2330.get('relationNature')!='price_action':
+    raise SystemExit(f'company-led pure price story should remain price_action: {cp2330}')
+
+market_first=m.match_stocks('台股震盪收黑，台積電成權值股焦點','大盤盤勢整理。')
+mf2330=next(x for x in market_first if x['symbol']=='2330')
+if mf2330.get('relationNature')!='market_theme':
+    raise SystemExit(f'market-led first clause must remain market_theme: {mf2330}')
+print('v4.7.10 market-theme narrowing tests OK')
