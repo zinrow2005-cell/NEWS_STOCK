@@ -175,3 +175,8 @@
 .audit-row em{font-style:normal;font-size:11px;line-height:1.45;color:#94a3b8;white-space:pre-wrap;word-break:break-word;text-align:right}
 .sync-grid label:first-child input{font-weight:800}
 @media(max-width:720px){.audit-row{grid-template-columns:1fr}.audit-row em{text-align:left}}
+
+/* v4.7.3 individual-stock relevance */
+.news-badge.relevance-high{font-weight:800;border-color:rgba(22,163,74,.28);background:rgba(22,163,74,.10)}
+.news-badge.relevance-related{font-weight:700;border-color:rgba(37,99,235,.24);background:rgba(37,99,235,.08)}
+.news-badge.relevance-mention{opacity:.78;border-style:dashed}

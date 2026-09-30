@@ -121,6 +121,67 @@ STOCK_BY_SYMBOL = {x[0]: x for x in STOCK_DIRECTORY}
 # Longer names first prevents e.g. 聯發科 from also matching 聯發.
 STOCK_BY_NAME = sorted(STOCK_DIRECTORY, key=lambda x: (-len(x[1]), x[0]))
 
+def _has_symbol(text_value, symbol):
+    return bool(re.search(rf'(?<!\d){re.escape(symbol)}(?!\d)', text_value or ''))
+
+def _stock_relevance(title, summary, symbol, name, matched_count):
+    """Explainable relevance score for one article -> one stock.
+
+    v4.7.4 is deliberately stricter for individual-stock searches:
+    - headline subject mentions dominate;
+    - summary-only mentions are weak;
+    - roundup/listicle headlines with many companies are aggressively demoted.
+    """
+    title = title or ''
+    summary = summary or ''
+    score = 0
+    reasons = []
+    title_hit = False
+    title_lower = title.lower()
+
+    # Direct ticker/name mentions in the headline are the strongest signals.
+    if _has_symbol(title, symbol):
+        score += 82; reasons.append('標題含股票代號'); title_hit = True
+    elif _has_symbol(summary, symbol):
+        score += 24; reasons.append('摘要含股票代號')
+
+    if name and name in title:
+        pos = title.find(name)
+        score += 68; reasons.append('標題直接提及公司'); title_hit = True
+        if 0 <= pos <= 12:
+            score += 12; reasons.append('公司位於標題前段')
+        # If the company is in the first clause, it is much more likely to be the article subject.
+        first_clause = re.split(r'[｜|：:，,、；;—-]', title, maxsplit=1)[0]
+        if name in first_clause:
+            score += 8; reasons.append('公司位於標題主句')
+    elif name and name in summary[:120]:
+        score += 30; reasons.append('摘要前段提及公司')
+    elif name and name in summary:
+        score += 12; reasons.append('摘要提及公司')
+
+    # One-company articles are more likely to be focused; multi-company roundups are noisier.
+    if matched_count == 1:
+        score += 8; reasons.append('文章僅辨識此一公司')
+    elif matched_count > 1:
+        penalty = min(42, (matched_count - 1) * (8 if title_hit else 11))
+        score -= penalty
+        reasons.append(f'同篇提及{matched_count}家公司')
+
+    # Explicit roundup/market-summary language is a strong sign the stock is only one member of a list.
+    roundup_words = ['概念股','族群','供應鏈','焦點股','熱門股','盤中','盤後','台股','多檔','這幾檔','排行榜','漲停股','ETF']
+    if matched_count >= 3 and any(w.lower() in title_lower for w in roundup_words):
+        score -= 18
+        reasons.append('屬多股／族群整理')
+
+    # A stock that appears only in summary, especially alongside many peers, should normally be mention-only.
+    if not title_hit and matched_count >= 2:
+        score -= 10
+        reasons.append('僅摘要提及且同篇多公司')
+
+    score = max(0, min(100, score))
+    level = 'high' if score >= 78 else ('related' if score >= 50 else 'mention')
+    return score, level, reasons
+
 def match_stocks(title, summary):
     corpus=f'{title} {summary}'
     found=[]; seen=set(); matched_names=[]
@@ -133,28 +194,40 @@ def match_stocks(title, summary):
             _,name,market=row
             found.append({'symbol':symbol,'name':name,'market':market})
             seen.add(symbol); matched_names.append(name)
-            if len(found)>=8: return found
-    for symbol,name,market in STOCK_BY_NAME:
-        if symbol in seen or name not in corpus: continue
-        # If this short name is contained in an already matched longer company name, skip it.
-        if any(name != longer and name in longer for longer in matched_names):
-            continue
-        # Two-character company names are common in Taiwan, but substring collisions are noisy
-        # (e.g. 新產 inside 新產品). Require at least one CJK boundary around the occurrence.
-        if len(name) == 2:
-            boundary_ok=False
-            for mm in re.finditer(re.escape(name), corpus):
-                left=corpus[mm.start()-1] if mm.start()>0 else ''
-                right=corpus[mm.end()] if mm.end()<len(corpus) else ''
-                left_cjk=bool(re.match(r'[\u4e00-\u9fff]', left)) if left else False
-                right_cjk=bool(re.match(r'[\u4e00-\u9fff]', right)) if right else False
-                if not (left_cjk and right_cjk):
-                    boundary_ok=True; break
-            if not boundary_ok:
+            if len(found)>=8: break
+    if len(found)<8:
+        for symbol,name,market in STOCK_BY_NAME:
+            if symbol in seen or name not in corpus: continue
+            # If this short name is contained in an already matched longer company name, skip it.
+            if any(name != longer and name in longer for longer in matched_names):
                 continue
-        found.append({'symbol':symbol,'name':name,'market':market})
-        seen.add(symbol); matched_names.append(name)
-        if len(found)>=8: break
+            # Two-character company names are common in Taiwan, but substring collisions are noisy
+            # (e.g. 新產 inside 新產品). Require at least one CJK boundary around the occurrence.
+            if len(name) == 2:
+                boundary_ok=False
+                for mm in re.finditer(re.escape(name), corpus):
+                    left=corpus[mm.start()-1] if mm.start()>0 else ''
+                    right=corpus[mm.end()] if mm.end()<len(corpus) else ''
+                    left_cjk=bool(re.match(r'[\u4e00-\u9fff]', left)) if left else False
+                    right_cjk=bool(re.match(r'[\u4e00-\u9fff]', right)) if right else False
+                    if not (left_cjk and right_cjk):
+                        boundary_ok=True; break
+                if not boundary_ok:
+                    continue
+            found.append({'symbol':symbol,'name':name,'market':market})
+            seen.add(symbol); matched_names.append(name)
+            if len(found)>=8: break
+
+    total=len(found)
+    for row in found:
+        score, level, reasons = _stock_relevance(title, summary, row['symbol'], row['name'], total)
+        row['relevanceScore']=score
+        row['relevanceLevel']=level
+        row['relevanceReasons']=reasons
+    if found:
+        best=max(x['relevanceScore'] for x in found)
+        for row in found:
+            row['isPrimary']=row['relevanceScore']==best and best>=40
     return found
 
 def text(v):
@@ -166,7 +239,7 @@ def fetch(url, timeout=10):
     for attempt in range(2):
         try:
             req = Request(url, headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.2; +https://github.com/)',
+                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.4; +https://github.com/)',
                 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
                 'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.6',
                 'Cache-Control': 'no-cache',
@@ -432,7 +505,7 @@ def main():
         return
 
     payload = {
-        'version': 5,
+        'version': 6,
         'generatedAt': datetime.now(TZ).isoformat(timespec='seconds'),
         'count': len(items),
         'freshItemCount': fresh_items,
@@ -444,7 +517,7 @@ def main():
         'historyDays': 120,
         'radarStockMatches': sum(1 for x in items if x.get('matchedStocks')),
         'matchedStockCount': len({m.get('symbol') for x in items for m in x.get('matchedStocks',[]) if m.get('symbol')}),
-        'notice': '新聞重要性、事件類別、情緒與影響面向為規則式整理，僅供篩選與閱讀排序；系統會累積最多約120天RSS歷史，請以公司公告、主管機關資訊及原文核對。',
+        'notice': '新聞重要性、事件類別、情緒與個股相關性為規則式整理，僅供篩選與閱讀排序；個股搜尋預設排除順帶提及，請以公司公告、主管機關資訊及原文核對。',
     }
     OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(',',':')) + '\n', encoding='utf-8')
     print(f'wrote {len(items)} news items / {payload["eventCount"]} events; fresh={fresh_items}; sources={successful_sources}/{len(live_sources)}')
