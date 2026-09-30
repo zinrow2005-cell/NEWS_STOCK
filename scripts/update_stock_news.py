@@ -251,7 +251,7 @@ def fetch(url, timeout=10):
     for attempt in range(2):
         try:
             req = Request(url, headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.5; +https://github.com/)',
+                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.6; +https://github.com/)',
                 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
                 'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.6',
                 'Cache-Control': 'no-cache',
@@ -504,7 +504,15 @@ def main():
             by_fp[fp] = item
     items = list(by_fp.values())
     items.sort(key=lambda x: (x.get('publishedAt',''), x.get('importance',0)), reverse=True)
-    items = cluster_items(items[:3000])
+    items = items[:3000]
+
+    # v4.7.6: historical cached articles may carry relevance/isPrimary fields produced by
+    # older matching rules. Recompute every retained article with the CURRENT matcher so
+    # primary/high/related/mention always form a consistent hierarchy after upgrades.
+    for item in items:
+        item['matchedStocks'] = match_stocks(item.get('title',''), item.get('summary',''))
+
+    items = cluster_items(items)
     successful_sources=sum(1 for x in status.values() if x.get('ok'))
     fresh_items=sum(int(x.get('count',0)) for x in status.values() if x.get('ok'))
     # Never destroy a working cache with an empty file just because every upstream feed failed.
@@ -517,7 +525,7 @@ def main():
         return
 
     payload = {
-        'version': 6,
+        'version': 7,
         'generatedAt': datetime.now(TZ).isoformat(timespec='seconds'),
         'count': len(items),
         'freshItemCount': fresh_items,

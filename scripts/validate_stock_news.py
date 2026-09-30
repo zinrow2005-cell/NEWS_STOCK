@@ -18,7 +18,7 @@ if len(items) <= 0:
 if matched <= 0:
     print('ERROR: no article matched any listed/OTC stock; pipeline is not useful'); sys.exit(4)
 
-# v4.7.5 relevance + primary-subject diagnostics for smoke stocks
+# v4.7.6 relevance + primary-subject diagnostics and hierarchy guard
 for _sym in ('2330','2317','2454'):
     _counts={'high':0,'related':0,'mention':0}
     for _x in items:
@@ -27,4 +27,21 @@ for _sym in ('2330','2317','2454'):
                 _lvl=_m.get('relevanceLevel','mention')
                 _counts[_lvl]=_counts.get(_lvl,0)+1
     _primary=sum(1 for _x in items for _m in (_x.get('matchedStocks') or []) if str(_m.get('symbol'))==_sym and _m.get('isPrimary') is True)
-    print(f'relevance {_sym}: primary={_primary}, high={_counts.get("high",0)}, related={_counts.get("related",0)}, mention={_counts.get("mention",0)}')
+    _high=_counts.get('high',0)
+    print(f'relevance {_sym}: primary={_primary}, high={_high}, related={_counts.get("related",0)}, mention={_counts.get("mention",0)}')
+    if _primary > _high:
+        print(f'ERROR: relevance hierarchy broken for {_sym}: primary={_primary} > high={_high}')
+        sys.exit(5)
+
+# Global invariant: every primary relation must also be high relevance.
+_bad=[]
+for _x in items:
+    for _m in (_x.get('matchedStocks') or []):
+        if _m.get('isPrimary') is True and _m.get('relevanceLevel') != 'high':
+            _bad.append((_m.get('symbol'), _m.get('relevanceLevel'), _x.get('title','')[:100]))
+            if len(_bad)>=10: break
+    if len(_bad)>=10: break
+if _bad:
+    print('ERROR: primary relations that are not high relevance:')
+    for _b in _bad: print('  ', _b)
+    sys.exit(6)

@@ -85,3 +85,9 @@ for x in items:
 if len(items)!=3:
     raise SystemExit(f'expected 3 parsed items, got {len(items)}')
 print('selftest OK:', len(items), 'items, symbols=', sorted(syms), 'relevance metadata OK')
+
+# v4.7.6 invariant: primary must always be a subset of high relevance.
+for case in [focused_primary, roundup_primary, lead_with_peers, high, multi]:
+    for z in case:
+        if z.get('isPrimary') and z.get('relevanceLevel') != 'high':
+            raise SystemExit(f'primary must imply high relevance: {z}')

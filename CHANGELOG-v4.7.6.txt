@@ -1,0 +1,5 @@
+v4.7.6
+- Recompute stock matching and relevance metadata for historical cached news every run.
+- Enforce primary ⊆ high relevance invariant.
+- Add validator failure when primary > high or any primary item is not high relevance.
+- Bump generated stock-news schema version to 7.
