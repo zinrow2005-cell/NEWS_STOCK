@@ -1,0 +1,13 @@
+NEWS_STOCK GitHub Actions 修補包
+
+請將本壓縮檔內的 .github 與 scripts 兩個資料夾合併到 GitHub Repository 根目錄。
+最重要的是這兩個檔案必須出現在 GitHub：
+.github/workflows/update-stock-news.yml
+.github/workflows/update-market-close.yml
+
+上傳後到 GitHub > Actions，應看到：
+- Update Taiwan stock news
+- Update Taiwan market close
+
+先執行 Update Taiwan stock news > Run workflow。
+成功後 stock-news.json 的 count 應大於 0。
