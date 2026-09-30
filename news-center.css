@@ -193,3 +193,23 @@
 .read-mode-buttons{display:flex;gap:8px;flex-wrap:wrap}.read-mode-buttons button{border:1px solid rgba(100,116,139,.25);background:#fff;border-radius:999px;padding:8px 11px;font-weight:700;cursor:pointer}.read-mode-buttons button em{font-style:normal;font-size:11px;margin-left:5px;padding:2px 6px;border-radius:999px;background:#eef2f7;color:#475569}.read-mode-buttons button.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;box-shadow:0 0 0 2px rgba(37,99,235,.08)}.read-mode-buttons button.active em{background:#dbeafe;color:#1d4ed8}
 .read-mode-help{display:block;margin-top:9px;line-height:1.55}
 @media(max-width:760px){.news-read-modes{padding:12px}.read-mode-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.read-mode-buttons button{border-radius:12px;text-align:left;display:flex;justify-content:space-between;align-items:center}.read-mode-buttons button:first-child{grid-column:1/-1}}
+
+/* v4.7.12 實際操作 UX 優化 */
+.news-field input#newsSearch{font-size:14px;line-height:1.4}
+.read-mode-buttons button em{white-space:nowrap}
+/* 研究 / 同步 / 備份區最低可讀字級，避免 iPad/桌機過小 */
+.research-dash-top time,.dash-status,.dash-mini-kpis span,.dash-warning,.blindspot-list small,
+.sync-head small,.sync-grid span,.sync-actions button,.sync-actions label,.sync-msg,
+.backup-head small,.backup-kpis small,.backup-kpis em,.backup-subtitle span,.backup-row small,.backup-row.history>span,.backup-note,
+.compare-pickers label>span,.compare-summary small,.compare-item>small,.compare-change-list>div,.compare-empty,
+.merge-global small,.merge-thread small,.merge-all button,.merge-choice button,.merge-field-label,.merge-side small,.merge-side p,.merge-preview small{
+  font-size:11px!important;line-height:1.45
+}
+.research-dash-card p,.research-dash-card button,.backup-row b,.compare-item>b,.merge-thread b,.merge-preview b,.merge-preview span{font-size:12px!important}
+.research-dash-card h4,.blindspot-list strong,.sync-grid input,.backup-kpis b.backup-date,.backup-subtitle,.compare-groups section>h4,.compare-pickers select,.compare-actions button,.merge-actions button{font-size:13px!important}
+.dash-symbol,.sync-head b,.backup-head b{font-size:12px!important}
+@media(max-width:760px){
+  .news-field input#newsSearch{font-size:16px}
+  .read-mode-buttons button em{font-size:10px;white-space:normal;text-align:right}
+  .research-dash-card p,.sync-msg,.backup-note,.compare-change-list>div,.merge-side p{font-size:12px!important}
+}
