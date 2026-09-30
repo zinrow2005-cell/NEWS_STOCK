@@ -147,3 +147,30 @@ for arr in [core,general,market_chip,cross_company]:
         if z.get('isCorePrimary') and (not z.get('isPrimary') or z.get('primaryTier')!='core' or z.get('relevanceLevel')!='high'):
             raise SystemExit(f'core primary hierarchy broken: {z}')
 print('v4.7.8 tier tests OK')
+
+# v4.7.9 company-event vs price-action separation tests.
+price_only=m.match_stocks('台積電開紅盤一度漲15元，股價站上千元關卡','盤中買盤回流。')
+p2330=next(x for x in price_only if x['symbol']=='2330')
+if p2330.get('isPrimary') or p2330.get('primaryTier')!='none' or p2330.get('relationNature')!='price_action':
+    raise SystemExit(f'pure price-action story must not be primary: {p2330}')
+
+analyst_only=m.match_stocks('外資調升聯發科目標價至1800元，評等維持買進','券商最新報告。')
+a2454=next(x for x in analyst_only if x['symbol']=='2454')
+if a2454.get('isPrimary') or a2454.get('relationNature')!='price_action':
+    raise SystemExit(f'analyst target-price story must not be primary: {a2454}')
+
+fundamental_with_price=m.match_stocks('台積電營收創高帶動股價上漲，AI需求續強','公司公布最新月營收。')
+fp2330=next(x for x in fundamental_with_price if x['symbol']=='2330')
+if not fp2330.get('isCorePrimary') or fp2330.get('relationNature')!='company_core':
+    raise SystemExit(f'fundamental event remains core even if price reaction is mentioned: {fp2330}')
+
+routine=m.match_stocks('鴻海子公司取得廠房使用權資產','公司公告取得廠房使用權資產。')
+r2317=next(x for x in routine if x['symbol']=='2317')
+if r2317.get('relationNature')!='company_general' or not r2317.get('isPrimary'):
+    raise SystemExit(f'routine company disclosure should remain general primary: {r2317}')
+
+market=m.match_stocks('台股大漲300點，台積電領軍權值股走強','大盤收高。')
+mk2330=next(x for x in market if x['symbol']=='2330')
+if mk2330.get('isPrimary') or mk2330.get('relationNature')!='market_theme':
+    raise SystemExit(f'market-led story should be market_theme and non-primary: {mk2330}')
+print('v4.7.9 company-event/price-action separation tests OK')

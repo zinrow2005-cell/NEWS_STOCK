@@ -65,7 +65,8 @@ EVENT_RULES = {
     '重大訊息': ['重大訊息','重訊','停牌','恢復交易','處分','裁罰','訴訟','調查','下市','終止上市','併購','收購','合併'],
     '籌碼/法人': ['外資','投信','自營商','三大法人','買超','賣超','持股','目標價','評等','券商'],
     '產業/政策': ['政策','法規','關稅','補貼','匯率','利率','央行','fed','產業','景氣','出口','進口'],
-    '市場盤勢': ['台股','大盤','加權指數','櫃買','盤中','盤後','開盤','收盤','漲停','跌停'],
+    '股價行情': ['股價','漲停','跌停','漲幅','跌幅','開高','開低','收紅','收黑','紅盤','黑盤','反彈','回檔','突破','跌破','站上','失守','均線','技術面','目標價','升評','降評'],
+    '市場盤勢': ['台股','大盤','加權指數','櫃買','盤中','盤後','開盤','收盤','權值股','科技股','電子股','半導體股','ETF'],
 }
 IMPORTANT = [
     ('重大', 22, ['重大訊息','停牌','恢復交易','裁罰','訴訟','併購','收購','合併','下市','董事會']),
@@ -93,6 +94,7 @@ SIGNALS = {
     '重大訊息': ['公司正式重大訊息','主管機關後續公告','董事會決議','事件處理進度'],
     '籌碼/法人': ['三大法人連續買賣','外資持股變化','券商評等後續修正','成交量與籌碼集中度'],
     '產業/政策': ['政策正式生效日','主管機關細則','同業反應','匯率/利率變化'],
+    '股價行情': ['股價是否延續趨勢','成交量是否配合','是否有公司基本面事件支持','同產業與大盤相對強弱'],
     '市場盤勢': ['大盤成交量','同族群強弱','外資期現貨動向','市場風險事件'],
     '其他財經': ['公司後續公告','是否有第二來源確認','相關產業/客戶動態'],
 }
@@ -241,18 +243,28 @@ def match_stocks(title, summary):
         core_event_words = [
             '營收','財報','季報','年報','EPS','每股盈餘','獲利','淨利','毛利','營益','財測',
             '法說','展望','訂單','接單','出貨','擴產','產能','資本支出','重大投資','併購','收購','合併',
-            '目標價','評等','升評','降評','上修','下修','漲價','降價','客戶','砍單','庫存','新產品','晶片','產品',
+            '上修財測','下修財測','上修展望','下修展望','漲價','降價','客戶','砍單','庫存','新產品','晶片','產品',
             '股利','配息','配股','除息','除權','減資','增資','庫藏股','重大訊息','重訊','訴訟','裁罰'
         ]
         general_event_words = [
             '董事會','子公司','取得','處分','使用權資產','廠房','不動產','租賃','投資設立','人事','異動','公告'
         ]
+        # v4.7.9: market-price / analyst-opinion stories are useful, but they are NOT company-primary events
+        # unless the same headline also carries an actual operating/financial/company disclosure.
+        price_action_words = [
+            '股價','漲停','跌停','大漲','大跌','上漲','下跌','漲幅','跌幅','漲了','跌了','漲逾','跌逾',
+            '開高','開低','收紅','收黑','紅盤','黑盤','反彈','回檔','突破','跌破','站上','失守','均線','技術面',
+            '飆漲','重挫','震盪','創高價','創低價'
+        ]
+        analyst_opinion_words = ['目標價','評等','升評','降評','看多','看空','喊買','喊賣','券商','外資喊','法人看']
         corporate_event_words = core_event_words + general_event_words
         broad_roundup = len(title_direct) >= 2 and any(w in title_text for w in roundup_words)
         market_led = any(first_clause.startswith(w) or first_clause.startswith('今'+w) for w in market_lead_words)
         has_corp_event = any(w.lower() in title_text.lower() for w in corporate_event_words)
         has_core_event = any(w.lower() in title_text.lower() for w in core_event_words)
         has_general_event = any(w.lower() in title_text.lower() for w in general_event_words)
+        has_price_action = any(w.lower() in title_text.lower() for w in price_action_words)
+        has_analyst_opinion = any(w.lower() in title_text.lower() for w in analyst_opinion_words)
         # Catch cross-company themes where only one company exists in the Taiwan directory, e.g.
         # "台積電、美光資本支出雙引擎". This is not a pure single-company primary story.
         multi_subject_punct = '、' in title_text[:28]
@@ -271,24 +283,42 @@ def match_stocks(title, summary):
 
             # Market wrapups such as "科技股崩跌，聯發科漲300點" are never primary.
             market_story = market_led or (any(w in title_text for w in market_lead_words) and not has_corp_event)
-            subject_ok = company_led and not broad_roundup and not market_story and not multi_subject_punct
+            # Pure price-action / target-price / analyst-rating stories stay highly related, but are not company events.
+            price_or_opinion_story = bool((has_price_action or has_analyst_opinion) and not has_core_event and not has_general_event)
+            subject_ok = company_led and not broad_roundup and not market_story and not multi_subject_punct and not price_or_opinion_story
 
             primary = bool(
                 direct and len(title_direct) == 1 and
                 row.get('relevanceLevel') == 'high' and
                 row.get('relevanceScore', 0) >= 78 and
-                subject_ok
+                subject_ok and (has_core_event or has_general_event)
             )
             # Two primary tiers: core = material operating/fundamental event; general = company-led but routine/admin disclosure.
             tier = 'none'
             if primary:
                 tier = 'core' if has_core_event else 'general'
-                # A routine administrative/asset disclosure remains a company-primary story, but not a core research event.
                 if has_general_event and not has_core_event:
                     tier = 'general'
+
+            # Explainable relation nature used by the front-end and future filters.
+            if primary and tier == 'core':
+                relation_nature = 'company_core'
+            elif primary and tier == 'general':
+                relation_nature = 'company_general'
+            elif market_story or broad_roundup:
+                relation_nature = 'market_theme'
+            elif direct and price_or_opinion_story:
+                relation_nature = 'price_action'
+            else:
+                relation_nature = 'related'
             row['isPrimary']=primary
             row['primaryTier']=tier
             row['isCorePrimary']=bool(primary and tier == 'core')
+            row['relationNature']=relation_nature
+            row['relationNatureLabel']={
+                'company_core':'公司核心事件','company_general':'公司一般事件','price_action':'股價行情／評等',
+                'market_theme':'市場／族群題材','related':'相關資訊'
+            }.get(relation_nature,'相關資訊')
             reasons=[]
             if primary:
                 reasons.append('標題直接且唯一聚焦此公司')
@@ -296,6 +326,7 @@ def match_stocks(title, summary):
                 if tier == 'core': reasons.append('屬營運／財務／展望等核心事件')
                 elif tier == 'general': reasons.append('屬公司主體但偏例行／行政公告')
             else:
+                if direct and price_or_opinion_story: reasons.append('屬股價行情／分析師評等，非公司事件')
                 if direct and market_story: reasons.append('標題主體偏市場／盤勢')
                 if direct and broad_roundup: reasons.append('屬多股／族群整理')
                 if direct and multi_subject_punct: reasons.append('標題為多主體／跨公司題材')
@@ -312,7 +343,7 @@ def fetch(url, timeout=10):
     for attempt in range(2):
         try:
             req = Request(url, headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.8; +https://github.com/)',
+                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.9; +https://github.com/)',
                 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
                 'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.6',
                 'Cache-Control': 'no-cache',
@@ -586,7 +617,7 @@ def main():
         return
 
     payload = {
-        'version': 7,
+        'version': 8,
         'generatedAt': datetime.now(TZ).isoformat(timespec='seconds'),
         'count': len(items),
         'freshItemCount': fresh_items,
@@ -598,7 +629,7 @@ def main():
         'historyDays': 120,
         'radarStockMatches': sum(1 for x in items if x.get('matchedStocks')),
         'matchedStockCount': len({m.get('symbol') for x in items for m in x.get('matchedStocks',[]) if m.get('symbol')}),
-        'notice': '新聞重要性、事件類別、情緒與個股相關性為規則式整理，僅供篩選與閱讀排序；個股搜尋預設排除順帶提及，請以公司公告、主管機關資訊及原文核對。',
+        'notice': '新聞重要性、事件類別、情緒、主角與股價行情分類皆為規則式整理，僅供篩選與閱讀排序；公司核心事件與股價行情已分離，請以公司公告、主管機關資訊及原文核對。',
     }
     OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(',',':')) + '\n', encoding='utf-8')
     print(f'wrote {len(items)} news items / {payload["eventCount"]} events; fresh={fresh_items}; sources={successful_sources}/{len(live_sources)}')

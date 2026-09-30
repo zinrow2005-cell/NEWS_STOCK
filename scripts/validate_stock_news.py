@@ -62,6 +62,24 @@ if _core_bad:
     sys.exit(7)
 
 
+
+# v4.7.9: company-event vs price-action separation guard.
+for _sym in ('2330','2317','2454'):
+    _nature={}
+    _bad_price=[]
+    for _x in items:
+        for _m in (_x.get('matchedStocks') or []):
+            if str(_m.get('symbol')) != _sym: continue
+            _n=_m.get('relationNature','related')
+            _nature[_n]=_nature.get(_n,0)+1
+            if _n in ('price_action','market_theme') and _m.get('isPrimary'):
+                _bad_price.append((_x.get('title','')[:120],_n))
+    print(f'nature {_sym}: core={_nature.get("company_core",0)}, general={_nature.get("company_general",0)}, price={_nature.get("price_action",0)}, market={_nature.get("market_theme",0)}, related={_nature.get("related",0)}')
+    if _bad_price:
+        print(f'ERROR: non-company stories marked primary for {_sym}:')
+        for _b in _bad_price[:10]: print('  ',_b)
+        sys.exit(8)
+
 # v4.7.7 content-sampling diagnostics: print real titles from the live 3,000-item pool.
 # This turns GitHub Actions itself into a manual precision audit without exposing article bodies.
 def _relation(item, sym):
@@ -71,7 +89,7 @@ def _relation(item, sym):
     return None
 
 for _sym in ('2330','2317','2454'):
-    _core=[]; _general=[]; _high_nonprimary=[]; _mentions=[]
+    _core=[]; _general=[]; _price=[]; _market=[]; _high_nonprimary=[]; _mentions=[]
     for _x in items:
         _m=_relation(_x,_sym)
         if not _m: continue
@@ -81,6 +99,10 @@ for _sym in ('2330','2317','2454'):
             _core.append(row)
         elif _m.get('isPrimary') is True:
             _general.append(row)
+        elif _m.get('relationNature') == 'price_action':
+            _price.append(row)
+        elif _m.get('relationNature') == 'market_theme':
+            _market.append(row)
         elif _m.get('relevanceLevel') == 'high':
             _high_nonprimary.append(row)
         elif _m.get('relevanceLevel') == 'mention':
@@ -89,6 +111,10 @@ for _sym in ('2330','2317','2454'):
     for t in _core[:6]: print(' CORE:', t[:160])
     print(f'--- sample {_sym} general-primary ({len(_general)}) ---')
     for t in _general[:4]: print(' GENERAL:', t[:160])
+    print(f'--- sample {_sym} price-action ({len(_price)}) ---')
+    for t in _price[:4]: print(' PRICE:', t[:160])
+    print(f'--- sample {_sym} market-theme ({len(_market)}) ---')
+    for t in _market[:3]: print(' MARKET:', t[:160])
     print(f'--- sample {_sym} high-not-primary ({len(_high_nonprimary)}) ---')
     for t in _high_nonprimary[:4]: print(' HIGH_ONLY:', t[:160])
     print(f'--- sample {_sym} mention ({len(_mentions)}) ---')
