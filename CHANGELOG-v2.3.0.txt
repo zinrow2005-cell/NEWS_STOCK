@@ -1,0 +1,9 @@
+v2.3.0 — 新聞事件 × 大盤超額報酬
+
+1. 新增 TWSE MI_INDEX / TAIEX 每日基準指數累積。
+2. market-history.json schema 升級 v2：benchmarks、benchmarkMeta、symbolMarkets。
+3. 單一新聞事件顯示個股報酬、大盤報酬與超額報酬。
+4. 個股總覽事件表新增超額報酬。
+5. 事件類型歷史統計改為超額平均、中位數、勝大盤比例、樣本數。
+6. 週末／休市日仍對齊下一交易日；比較基準使用事件前一交易日。
+7. Service Worker 快取升級 news-v23。

@@ -1,0 +1,9 @@
+v2.8.0 — Cross-stock Event Research
+
+- Added a new “跨股比較” tab.
+- Search one event topic across all portfolio/favorite stocks.
+- Filter by event type, industry, MA20/trend, volume, market regime, outcome and horizon.
+- Compare each stock by sample count, mean market excess return, win rate and industry excess return.
+- Added industry-group summaries to avoid misleading cross-industry comparisons.
+- Keeps +5/+20 day market and industry excess return context on every historical case.
+- Sample-size-first presentation: effective n is shown before interpreting historical averages.

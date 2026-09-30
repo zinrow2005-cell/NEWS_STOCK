@@ -1,0 +1,6 @@
+v3.1.0 Daily Intelligence Digest
+- Added automatic 5-10 item daily priority digest to Daily Market Intelligence.
+- Added transparent reasons for each priority item: importance, negative signal, volume spike, multi-source coverage, fundamental event.
+- Added automatic follow-up checklist for negative, financial, rating, volume and major events.
+- Digest items link to original news and one-click stock research.
+- No buy/sell recommendations are generated.

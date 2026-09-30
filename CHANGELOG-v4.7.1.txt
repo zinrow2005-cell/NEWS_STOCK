@@ -1,0 +1,7 @@
+v4.7.1 Hotfix — 新聞資料讀取 Failed to fetch
+
+- stock-news.json 改為同站、GitHub raw main/master、CacheStorage 多層備援。
+- market-history.json 使用相同備援機制。
+- Service Worker 對新聞/行情 JSON 改為 network-first + cache fallback。
+- 錯誤訊息會顯示已嘗試的來源，方便診斷 GitHub Pages 路徑/分支問題。
+- PWA cache 升級為 news-v47.1。
