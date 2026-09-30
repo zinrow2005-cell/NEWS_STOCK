@@ -86,6 +86,34 @@ if len(items)!=3:
     raise SystemExit(f'expected 3 parsed items, got {len(items)}')
 print('selftest OK:', len(items), 'items, symbols=', sorted(syms), 'relevance metadata OK')
 
+
+# v4.7.7 primary-content calibration tests: market wrapups must not become primary.
+market_story=m.match_stocks('台股大漲逾300點，台積電領軍權值股走強','市場買盤回流，指數全面上揚。')
+ms2330=next(x for x in market_story if x['symbol']=='2330')
+if ms2330.get('isPrimary'):
+    raise SystemExit(f'market-led headline must not be primary: {ms2330}')
+
+market_story2=m.match_stocks('權值股走強，台積電帶動大盤收高','盤面聚焦大型電子股。')
+ms22330=next(x for x in market_story2 if x['symbol']=='2330')
+if ms22330.get('isPrimary'):
+    raise SystemExit(f'weight-stock market wrap must not be primary: {ms22330}')
+
+corp_event=m.match_stocks('台積電8月營收創高，AI需求續強','公司公布最新月營收。')
+ce2330=next(x for x in corp_event if x['symbol']=='2330')
+if not ce2330.get('isPrimary'):
+    raise SystemExit(f'company revenue headline should be primary: {ce2330}')
+
+corp_event2=m.match_stocks('聯發科法說上修全年展望，AI晶片需求升溫','公司法說說明營運展望。')
+ce2454=next(x for x in corp_event2 if x['symbol']=='2454')
+if not ce2454.get('isPrimary'):
+    raise SystemExit(f'company guidance headline should be primary: {ce2454}')
+
+market_with_event=m.match_stocks('台股震盪，台積電公布營收創高成焦點','公司公布月營收。')
+mwe2330=next(x for x in market_with_event if x['symbol']=='2330')
+# Even with a company event, a market-led first clause remains non-primary in strict mode.
+if mwe2330.get('isPrimary'):
+    raise SystemExit(f'market-led first clause should stay non-primary in strict mode: {mwe2330}')
+
 # v4.7.6 invariant: primary must always be a subset of high relevance.
 for case in [focused_primary, roundup_primary, lead_with_peers, high, multi]:
     for z in case:

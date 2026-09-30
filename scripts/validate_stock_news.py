@@ -45,3 +45,32 @@ if _bad:
     print('ERROR: primary relations that are not high relevance:')
     for _b in _bad: print('  ', _b)
     sys.exit(6)
+
+
+# v4.7.7 content-sampling diagnostics: print real titles from the live 3,000-item pool.
+# This turns GitHub Actions itself into a manual precision audit without exposing article bodies.
+def _relation(item, sym):
+    for mm in item.get('matchedStocks') or []:
+        if str(mm.get('symbol')) == str(sym):
+            return mm
+    return None
+
+for _sym in ('2330','2317','2454'):
+    _primary=[]; _high_nonprimary=[]; _mentions=[]
+    for _x in items:
+        _m=_relation(_x,_sym)
+        if not _m: continue
+        row=(_x.get('title') or '').replace('\n',' ').strip()
+        if not row: continue
+        if _m.get('isPrimary') is True:
+            _primary.append(row)
+        elif _m.get('relevanceLevel') == 'high':
+            _high_nonprimary.append(row)
+        elif _m.get('relevanceLevel') == 'mention':
+            _mentions.append(row)
+    print(f'--- sample {_sym} primary ({len(_primary)}) ---')
+    for t in _primary[:8]: print(' PRIMARY:', t[:160])
+    print(f'--- sample {_sym} high-not-primary ({len(_high_nonprimary)}) ---')
+    for t in _high_nonprimary[:5]: print(' HIGH_ONLY:', t[:160])
+    print(f'--- sample {_sym} mention ({len(_mentions)}) ---')
+    for t in _mentions[:3]: print(' MENTION:', t[:160])

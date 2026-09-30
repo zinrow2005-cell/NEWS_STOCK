@@ -225,21 +225,62 @@ def match_stocks(title, summary):
         row['relevanceLevel']=level
         row['relevanceReasons']=reasons
     if found:
-        # v4.7.5 strict "主角新聞" rule:
-        # the stock must be directly named in the headline, it must be the only matched
-        # listed/OTC company directly named in that headline, and relevance must be high.
-        # This intentionally excludes broad roundups such as "台積電、鴻海、廣達...".
+        # v4.7.7 primary-subject calibration:
+        # A true primary article must not merely mention the stock in a market/roundup headline.
+        # It must be a high-relevance, single-company direct headline AND show company-subject evidence.
         title_direct=[]
         for row in found:
             if _has_symbol(title, row['symbol']) or (row['name'] and row['name'] in (title or '')):
                 title_direct.append(row['symbol'])
-        roundup_words = ['概念股','族群','供應鏈','焦點股','熱門股','盤中','盤後','台股','多檔','這幾檔','排行榜','漲停股','ETF']
-        broad_roundup = len(title_direct) >= 3 and any(w in (title or '') for w in roundup_words)
+
+        title_text = title or ''
+        first_clause = re.split(r'[｜|：:，,、；;—-]', title_text, maxsplit=1)[0]
+        roundup_words = ['概念股','族群','供應鏈','焦點股','熱門股','盤中','盤後','多檔','這幾檔','排行榜','漲停股','ETF','權值股']
+        market_lead_words = ['台股','大盤','加權指數','櫃買','台灣50','權值股','盤中','盤後','收盤','開盤','指數']
+        corporate_event_words = [
+            '營收','財報','季報','年報','EPS','每股盈餘','獲利','淨利','毛利','營益','財測',
+            '法說','展望','訂單','接單','出貨','擴產','產能','資本支出','股利','配息','配股',
+            '除息','除權','減資','增資','庫藏股','董事會','重大訊息','重訊','處分','併購','收購',
+            '合併','裁罰','訴訟','目標價','評等','升評','降評','上修','下修','漲價','降價','客戶'
+        ]
+        broad_roundup = len(title_direct) >= 2 and any(w in title_text for w in roundup_words)
+        market_led = any(first_clause.startswith(w) or first_clause.startswith('今'+w) for w in market_lead_words)
+        has_corp_event = any(w.lower() in title_text.lower() for w in corporate_event_words)
+
         for row in found:
             direct = row['symbol'] in title_direct
-            primary = bool(direct and len(title_direct) == 1 and row['relevanceScore'] >= 78 and not broad_roundup)
+            name = row.get('name') or ''
+            sym = row.get('symbol') or ''
+            # Subject evidence: company/ticker appears very early, or the first clause is company-led.
+            positions=[]
+            if name and name in title_text: positions.append(title_text.find(name))
+            m=re.search(rf'(?<!\d){re.escape(sym)}(?!\d)', title_text) if sym else None
+            if m: positions.append(m.start())
+            early_pos=min(positions) if positions else 999
+            company_led = bool(early_pos <= 10 or (name and name in first_clause) or (sym and _has_symbol(first_clause, sym)))
+
+            # Market wrapups such as "台股大漲，台積電領軍" are not primary unless the
+            # headline also contains a concrete company event (earnings, revenue, guidance, etc.).
+            market_story = market_led or (any(w in title_text for w in market_lead_words) and not has_corp_event)
+            subject_ok = company_led and not broad_roundup and not market_story
+
+            primary = bool(
+                direct and len(title_direct) == 1 and
+                row.get('relevanceLevel') == 'high' and
+                row.get('relevanceScore', 0) >= 78 and
+                subject_ok
+            )
             row['isPrimary']=primary
-            row['primaryReasons']=(['標題直接且唯一聚焦此公司'] if primary else [])
+            reasons=[]
+            if primary:
+                reasons.append('標題直接且唯一聚焦此公司')
+                if early_pos <= 10: reasons.append('公司位於標題前段')
+                if has_corp_event: reasons.append('標題含公司事件詞')
+            else:
+                if direct and market_story: reasons.append('標題主體偏市場／盤勢')
+                if direct and broad_roundup: reasons.append('屬多股／族群整理')
+                if direct and not company_led: reasons.append('公司非標題主句前段')
+            row['primaryReasons']=reasons
     return found
 
 def text(v):
@@ -251,7 +292,7 @@ def fetch(url, timeout=10):
     for attempt in range(2):
         try:
             req = Request(url, headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.6; +https://github.com/)',
+                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.7; +https://github.com/)',
                 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
                 'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.6',
                 'Cache-Control': 'no-cache',

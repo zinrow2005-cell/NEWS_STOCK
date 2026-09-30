@@ -1,0 +1,6 @@
+v4.7.7 - Primary News Content Calibration
+- Tighten primary-subject detection.
+- Demote market-led/index-led headlines from primary status.
+- Preserve company-event headlines as primary candidates.
+- Add live title samples to validation logs for 2330/2317/2454.
+- Add regression tests for market wrapups vs company-event headlines.
