@@ -1,23 +1,25 @@
-NEWS_STOCK v4.7.7 主角新聞內容抽樣校正 PATCH
+NEWS_STOCK v4.7.8 PATCH
 
-只需覆蓋 Repository 根目錄中的：
+目的：把「新聞是否以公司為主角」與「事件是否屬投資研究核心」拆成兩層。
+
+請覆蓋到 GitHub Repository 根目錄：
 - scripts/update_stock_news.py
 - scripts/validate_stock_news.py
 - scripts/selftest_news_pipeline.py
+- news-center.js
+- news-center.css
+- service-worker.js
 
-不包含 stock-news.json，不會覆蓋目前已抓到的新聞。
-
-主要修正：
-1. 主角新聞不再只看「標題唯一提及公司」，新增公司主體判定。
-2. 台股/大盤/加權指數/權值股/盤中盤後等市場盤勢標題，即使提到個股，也不標成主角新聞。
-3. 營收、財報、法說、展望、訂單、股利、重大訊息等具體公司事件仍可判定為主角。
-4. GitHub Actions 驗證會直接列出 2330/2317/2454 的真實新聞抽樣：
-   - PRIMARY 主角新聞最多 8 則
-   - HIGH_ONLY 高度相關但非主角最多 5 則
-   - MENTION 順帶提及最多 3 則
-   方便直接人工檢視準確度。
-5. 新增回歸測試，防止市場盤勢新聞誤標主角。
+stock-directory.json 若你原本已有，不需要覆蓋；本 PATCH 不包含 stock-news.json，不會清空目前已抓到的新聞。
 
 上傳後：
-Actions -> Update Taiwan stock news -> Run workflow
-再展開 Validate non-empty stock news，將 PRIMARY / HIGH_ONLY / MENTION 樣本截圖回傳即可繼續精準校正。
+1. GitHub > Actions > Update Taiwan stock news > Run workflow
+2. 查看 Validate non-empty stock news
+3. 應看到：
+   relevance 2330: core=..., general=..., primary=..., high=..., related=..., mention=...
+4. 必須滿足 core <= primary <= high；若不滿足，Action 會失敗、不提交錯誤資料。
+5. 網站 Ctrl+F5；手機/iPad PWA 完全關閉後重開，以更新 news-v47.8 Service Worker。
+
+前端：
+- 只看主角新聞：核心主角 + 一般主角
+- 只看核心主角：只保留營收/財報/法說/訂單/展望/獲利等核心公司事件

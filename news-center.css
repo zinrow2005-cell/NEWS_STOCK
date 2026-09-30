@@ -181,3 +181,6 @@
 .news-badge.relevance-high{font-weight:800;border-color:rgba(22,163,74,.28);background:rgba(22,163,74,.10)}
 .news-badge.relevance-related{font-weight:700;border-color:rgba(37,99,235,.24);background:rgba(37,99,235,.08)}
 .news-badge.relevance-mention{opacity:.78;border-style:dashed}
+/* v4.7.8 primary tier badges */
+.news-badge.relevance-core{font-weight:950;border-color:rgba(5,150,105,.34);background:rgba(5,150,105,.12);color:#047857}
+.news-badge.relevance-primary{color:#6d28d9}

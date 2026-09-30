@@ -235,17 +235,27 @@ def match_stocks(title, summary):
 
         title_text = title or ''
         first_clause = re.split(r'[｜|：:，,、；;—-]', title_text, maxsplit=1)[0]
-        roundup_words = ['概念股','族群','供應鏈','焦點股','熱門股','盤中','盤後','多檔','這幾檔','排行榜','漲停股','ETF','權值股']
-        market_lead_words = ['台股','大盤','加權指數','櫃買','台灣50','權值股','盤中','盤後','收盤','開盤','指數']
-        corporate_event_words = [
+        roundup_words = ['概念股','族群','供應鏈','焦點股','熱門股','盤中','盤後','多檔','這幾檔','排行榜','漲停股','ETF','權值股','五雄','六強','多頭股']
+        market_lead_words = ['台股','大盤','加權指數','櫃買','台灣50','權值股','科技股','電子股','半導體股','AI股','盤中','盤後','收盤','開盤','指數','美股','亞股']
+        # v4.7.8: separate "company is the subject" from "company event is core to investment research".
+        core_event_words = [
             '營收','財報','季報','年報','EPS','每股盈餘','獲利','淨利','毛利','營益','財測',
-            '法說','展望','訂單','接單','出貨','擴產','產能','資本支出','股利','配息','配股',
-            '除息','除權','減資','增資','庫藏股','董事會','重大訊息','重訊','處分','併購','收購',
-            '合併','裁罰','訴訟','目標價','評等','升評','降評','上修','下修','漲價','降價','客戶'
+            '法說','展望','訂單','接單','出貨','擴產','產能','資本支出','重大投資','併購','收購','合併',
+            '目標價','評等','升評','降評','上修','下修','漲價','降價','客戶','砍單','庫存','新產品','晶片','產品',
+            '股利','配息','配股','除息','除權','減資','增資','庫藏股','重大訊息','重訊','訴訟','裁罰'
         ]
+        general_event_words = [
+            '董事會','子公司','取得','處分','使用權資產','廠房','不動產','租賃','投資設立','人事','異動','公告'
+        ]
+        corporate_event_words = core_event_words + general_event_words
         broad_roundup = len(title_direct) >= 2 and any(w in title_text for w in roundup_words)
         market_led = any(first_clause.startswith(w) or first_clause.startswith('今'+w) for w in market_lead_words)
         has_corp_event = any(w.lower() in title_text.lower() for w in corporate_event_words)
+        has_core_event = any(w.lower() in title_text.lower() for w in core_event_words)
+        has_general_event = any(w.lower() in title_text.lower() for w in general_event_words)
+        # Catch cross-company themes where only one company exists in the Taiwan directory, e.g.
+        # "台積電、美光資本支出雙引擎". This is not a pure single-company primary story.
+        multi_subject_punct = '、' in title_text[:28]
 
         for row in found:
             direct = row['symbol'] in title_direct
@@ -259,10 +269,9 @@ def match_stocks(title, summary):
             early_pos=min(positions) if positions else 999
             company_led = bool(early_pos <= 10 or (name and name in first_clause) or (sym and _has_symbol(first_clause, sym)))
 
-            # Market wrapups such as "台股大漲，台積電領軍" are not primary unless the
-            # headline also contains a concrete company event (earnings, revenue, guidance, etc.).
+            # Market wrapups such as "科技股崩跌，聯發科漲300點" are never primary.
             market_story = market_led or (any(w in title_text for w in market_lead_words) and not has_corp_event)
-            subject_ok = company_led and not broad_roundup and not market_story
+            subject_ok = company_led and not broad_roundup and not market_story and not multi_subject_punct
 
             primary = bool(
                 direct and len(title_direct) == 1 and
@@ -270,15 +279,26 @@ def match_stocks(title, summary):
                 row.get('relevanceScore', 0) >= 78 and
                 subject_ok
             )
+            # Two primary tiers: core = material operating/fundamental event; general = company-led but routine/admin disclosure.
+            tier = 'none'
+            if primary:
+                tier = 'core' if has_core_event else 'general'
+                # A routine administrative/asset disclosure remains a company-primary story, but not a core research event.
+                if has_general_event and not has_core_event:
+                    tier = 'general'
             row['isPrimary']=primary
+            row['primaryTier']=tier
+            row['isCorePrimary']=bool(primary and tier == 'core')
             reasons=[]
             if primary:
                 reasons.append('標題直接且唯一聚焦此公司')
                 if early_pos <= 10: reasons.append('公司位於標題前段')
-                if has_corp_event: reasons.append('標題含公司事件詞')
+                if tier == 'core': reasons.append('屬營運／財務／展望等核心事件')
+                elif tier == 'general': reasons.append('屬公司主體但偏例行／行政公告')
             else:
                 if direct and market_story: reasons.append('標題主體偏市場／盤勢')
                 if direct and broad_roundup: reasons.append('屬多股／族群整理')
+                if direct and multi_subject_punct: reasons.append('標題為多主體／跨公司題材')
                 if direct and not company_led: reasons.append('公司非標題主句前段')
             row['primaryReasons']=reasons
     return found
@@ -292,7 +312,7 @@ def fetch(url, timeout=10):
     for attempt in range(2):
         try:
             req = Request(url, headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.7; +https://github.com/)',
+                'User-Agent': 'Mozilla/5.0 (compatible; StockRecord-News/4.7.8; +https://github.com/)',
                 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
                 'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.6',
                 'Cache-Control': 'no-cache',

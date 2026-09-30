@@ -119,3 +119,31 @@ for case in [focused_primary, roundup_primary, lead_with_peers, high, multi]:
     for z in case:
         if z.get('isPrimary') and z.get('relevanceLevel') != 'high':
             raise SystemExit(f'primary must imply high relevance: {z}')
+
+# v4.7.8 core/general primary tier tests.
+core=m.match_stocks('台積電8月營收創高，AI需求續強','公司公布最新月營收。')
+c2330=next(x for x in core if x['symbol']=='2330')
+if not c2330.get('isPrimary') or c2330.get('primaryTier')!='core' or not c2330.get('isCorePrimary'):
+    raise SystemExit(f'core company event should be core primary: {c2330}')
+
+general=m.match_stocks('鴻海子公司取得廠房使用權資產','公司公告子公司取得廠房使用權資產。')
+g2317=next(x for x in general if x['symbol']=='2317')
+if not g2317.get('isPrimary') or g2317.get('primaryTier')!='general' or g2317.get('isCorePrimary'):
+    raise SystemExit(f'routine company disclosure should be general primary: {g2317}')
+
+market_chip=m.match_stocks('科技股崩跌！聯發科漲300點、台股震盪','科技股盤勢整理。')
+mc2454=next(x for x in market_chip if x['symbol']=='2454')
+if mc2454.get('isPrimary') or mc2454.get('isCorePrimary'):
+    raise SystemExit(f'market/sector headline must not be primary: {mc2454}')
+
+cross_company=m.match_stocks('台積電、美光資本支出雙引擎','半導體產業資本支出題材。')
+cc2330=next(x for x in cross_company if x['symbol']=='2330')
+if cc2330.get('isPrimary') or cc2330.get('isCorePrimary'):
+    raise SystemExit(f'cross-company theme must not be primary: {cc2330}')
+
+# Invariants for all sampled relations.
+for arr in [core,general,market_chip,cross_company]:
+    for z in arr:
+        if z.get('isCorePrimary') and (not z.get('isPrimary') or z.get('primaryTier')!='core' or z.get('relevanceLevel')!='high'):
+            raise SystemExit(f'core primary hierarchy broken: {z}')
+print('v4.7.8 tier tests OK')
