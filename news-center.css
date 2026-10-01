@@ -360,3 +360,80 @@
 .blindspot-list>div>b,.blindspot-list strong,.blindspot-list small{font-size:11px!important;line-height:1.45}
 .sync-grid input{font-size:12px!important}.backup-kpis b.backup-date{font-size:12px!important}.backup-subtitle,.compare-groups section>h4{font-size:12px!important}
 @media(max-width:700px){.news-build-warning{margin:0 10px 8px}.news-build-warning span{min-width:140px}.news-build-badge{font-size:10px}}
+
+/* v4.7.24 — news center readability pass */
+:root{--news-center-build:"4.7.24"}
+
+/* Global readable baseline for news-center content */
+.news-shell{font-size:15px;line-height:1.6}
+.news-head p,.news-status,.news-toggle-row,.news-field label{font-size:14px!important}
+.news-field input,.news-field select,.news-topbar-button,.news-close{font-size:15px!important}
+.news-chip{font-size:14px!important;padding:8px 12px!important}
+.news-stat small{font-size:13px!important}.news-stat em{font-size:13px!important}.news-stat b{font-size:26px!important}
+.news-badge{font-size:12px!important;padding:5px 9px!important}
+.news-card h3{font-size:19px!important;line-height:1.5!important}
+.news-meta{font-size:13px!important}.news-card p{font-size:15px!important;line-height:1.72!important}.news-why{font-size:13px!important}
+.news-disclaimer{font-size:13px!important}
+.analysis-tags span,.horizon-grid b,.horizon-grid p,.news-analysis ul,.mentioned-dates,.source-details summary,.source-links a{font-size:13px!important}
+
+/* Daily market intelligence */
+.daily-hero h2{font-size:30px!important}.daily-hero p{font-size:16px!important;line-height:1.75!important}
+.daily-pulse b{font-size:28px!important}.daily-pulse span{font-size:12px!important}
+.daily-panel h3,.daily-digest h3{font-size:18px!important}
+.daily-card-top{font-size:12px!important;gap:8px!important}
+.daily-event-card h4{font-size:15px!important;line-height:1.55!important}
+.daily-card-tags span{font-size:11px!important;padding:5px 8px!important}
+.daily-open{font-size:12px!important;padding:7px 10px!important}
+.daily-empty{font-size:13px!important}
+.industry-heat-list b{font-size:14px!important}.industry-heat-list span,.industry-heat-list em{font-size:12px!important}
+.daily-digest-rank{font-size:14px!important;width:32px!important;height:32px!important}
+.daily-digest-meta{font-size:12px!important}.daily-digest-meta b{font-size:14px!important}
+.daily-digest-main h4{font-size:15px!important;line-height:1.55!important}.daily-digest-main p{font-size:12px!important;line-height:1.55!important}
+.daily-followups h4{font-size:14px!important}.daily-followups li{font-size:13px!important;line-height:1.6!important}
+
+/* Stock overview and highlights */
+.stock-overview-head p{font-size:14px!important}.stock-overview-updated small{font-size:12px!important}.stock-overview-updated b{font-size:14px!important}
+.stock-overview-kpis small{font-size:12px!important}.stock-overview-kpis span{font-size:11.5px!important}.stock-overview-kpis b{font-size:24px!important}
+.stock-overview-panel h3{font-size:14px!important}.stock-overview-panel>a{font-size:15px!important}.stock-overview-panel small{font-size:12px!important}.stock-overview-panel p{font-size:13px!important}.stock-source-list span{font-size:11.5px!important}
+.stock-highlight-head h3{font-size:20px!important}.stock-highlight-head p,.stock-highlight-head>small{font-size:13px!important}
+.stock-highlight-count{font-size:12px!important}.stock-highlight-rank{font-size:14px!important}
+.stock-highlight-meta b{font-size:12px!important}.stock-highlight-meta span,.stock-highlight-meta time{font-size:11.5px!important}
+.stock-highlight-main>a{font-size:15px!important;line-height:1.55!important}.stock-highlight-main>p{font-size:13px!important;line-height:1.6!important}.stock-highlight-reasons span{font-size:11.5px!important}
+
+/* Event merge/source detail */
+.event-source-details summary{font-size:13px!important}.event-source-range{font-size:12px!important}
+.event-source-links b{font-size:12px!important}.event-source-links span{font-size:11.5px!important}.event-source-links em{font-size:12.5px!important;line-height:1.5!important}
+.merge-health small,.merge-health>div:first-child>span{font-size:12px!important}.merge-health>div:first-child>b{font-size:15px!important}
+.merge-health-stats b{font-size:17px!important}.merge-health-stats small{font-size:11px!important}
+.merge-health-summary>div>b{font-size:14px!important}.merge-health-summary>div>em{font-size:11px!important}.merge-health-summary>span{font-size:12px!important}
+
+/* Timeline / watch / portfolio / research */
+.event-timeline time{font-size:12px!important}.timeline-card h4{font-size:15px!important}.timeline-card p{font-size:13px!important}.timeline-card small{font-size:12px!important}.mini-badge{font-size:11px!important}
+.portfolio-card-head>div:first-child span{font-size:13px!important}.read-priority small{font-size:12px!important}.portfolio-metrics span{font-size:12px!important}.portfolio-metrics b{font-size:16px!important}.portfolio-latest small{font-size:12px!important}.portfolio-latest h3{font-size:15px!important}.portfolio-reasons span{font-size:11.5px!important}
+.research-head time{font-size:13px!important}.research-card h4{font-size:18px!important}.research-card p{font-size:14px!important}.research-kpis small{font-size:12px!important}.research-kpis b{font-size:13px!important}.research-reaction>span,.similar-metrics>span{font-size:12px!important}.similar-empty{font-size:13px!important}
+
+/* Cross-stock / compare / workbench readable minimums */
+.cross-stat-row>div small,.cross-stat-row>span small,.cross-industry-list span,.cross-industry-list small,.cross-company span,.cross-company time,.cross-result span{font-size:11.5px!important}
+.cross-stat-row>span{font-size:12.5px!important}.cross-stat-row>span b{font-size:14px!important}.cross-company b,.cross-case-card h4{font-size:14px!important}.cross-result b{font-size:13px!important}
+.track-workbench-head span{font-size:13px!important}.track-workbench-head b,.track-status-actions select,.track-task label{font-size:12.5px!important}.track-workbench-summary span{font-size:11.5px!important}.track-task small,.track-task-icon{font-size:11px!important}
+.compare-pickers label>span,.compare-summary small,.compare-item>small,.compare-change-list>div{font-size:11.5px!important}.compare-pickers select,.compare-pickers button,.compare-actions button,.compare-item>b,.compare-empty{font-size:12.5px!important}.compare-groups section>h4{font-size:13px!important}
+
+/* Reading modes and favorites */
+.read-mode-head b{font-size:14px!important}.read-mode-buttons button{font-size:13px!important}.read-mode-buttons button em{font-size:11.5px!important}
+.news-favorite-title b{font-size:14px!important}.news-favorite-title span,.news-favorite-empty,.news-favorite-toggle{font-size:12.5px!important}
+.news-build-badge{font-size:11.5px!important}.news-build-warning b{font-size:13px!important}.news-build-warning span,.news-build-warning button{font-size:12px!important}
+
+@media(max-width:800px){
+  .news-shell{font-size:15px}
+  .news-card h3{font-size:18px!important}.news-card p{font-size:14.5px!important}.news-meta{font-size:12.5px!important}
+  .daily-hero h2{font-size:25px!important}.daily-hero p{font-size:15px!important}
+  .daily-digest-main h4,.daily-event-card h4{font-size:14.5px!important}
+  .stock-highlight-main>a{font-size:14.5px!important}
+  .read-mode-buttons button{font-size:12.5px!important;min-height:36px!important}
+}
+@media(max-width:480px){
+  .news-field input,.news-field select{font-size:16px!important}
+  .news-stat b{font-size:23px!important}
+  .news-badge{font-size:11.5px!important}
+  .daily-digest-meta{font-size:11.5px!important}
+}

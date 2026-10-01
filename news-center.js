@@ -1,5 +1,5 @@
 (()=>{
-  const NEWS_APP_VERSION='4.7.23.2';
+  const NEWS_APP_VERSION='4.7.24';
   const DATA_KEY='安心股票簿-local-data-v1',PREF_KEY='安心股票簿-news-filter-v6',TRACK_KEY='安心股票簿-news-tracker-v14',NEWS_FAV_KEY='安心股票簿-news-favorites-v1',SYNC_KEY='安心股票簿-news-sync-v2',BACKUP_KEY='安心股票簿-news-backups-v1',SYNC_BASE_KEY='安心股票簿-news-sync-base-v1',SYNC_PENDING_KEY='安心股票簿-news-sync-pending-v1';
   const state={payload:null,priceHistory:null,items:[],selectedStock:'all',search:'',period:'7d',source:'all',category:'all',sort:'importance',from:'',to:'',majorOnly:false,grouped:true,includeMentions:false,primaryOnly:false,coreOnly:false,readMode:'focus',view:'daily',dailyWindow:'1d',overviewWindow:'7d',dbSearch:'',dbCategory:'all',dbTrend:'all',dbVolume:'all',dbRegime:'all',dbOutcome:'all',dbHorizon:'d5',crossSearch:'',crossCategory:'all',crossIndustry:'all',crossTrend:'all',crossVolume:'all',crossRegime:'all',crossOutcome:'all',crossHorizon:'d5',crossSort:'samples',radarSearch:'',radarCategory:'all',radarMarket:'all',radarIndustry:'all',radarWindow:'3d',radarMajorOnly:true,radarVolume:'all',radarTrend:'all',radarSort:'score',trackFilter:'all',trackSearch:'',researchDashFilter:'all'};
   const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
