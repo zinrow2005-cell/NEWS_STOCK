@@ -1,4 +1,5 @@
-const CACHE_VERSION = "安心股票簿-github-pwa-2026-09-30-news-v47.20";
+const NEWS_APP_VERSION = "4.7.21";
+const CACHE_VERSION = "安心股票簿-github-pwa-2026-10-01-news-v47.21";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const BASE_URL = new URL("./", self.location.href);
@@ -57,6 +58,10 @@ async function cacheCurrentShell() {
 }
 
 self.addEventListener("message", (event) => {
+  if (event.data?.type === "GET_NEWS_APP_VERSION") {
+    if (event.ports?.[0]) event.ports[0].postMessage({ type: "NEWS_APP_VERSION", version: NEWS_APP_VERSION });
+    return;
+  }
   if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
     return;
@@ -113,6 +118,22 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(navigationResponse(request));
+    return;
+  }
+
+  if (url.pathname === appPath("news-center.js") || url.pathname === appPath("news-center.css")) {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(new Request(request, { cache: "no-store" }));
+        if (fresh.ok) {
+          const cache = await caches.open(ASSET_CACHE);
+          await cache.put(request, fresh.clone());
+        }
+        return fresh;
+      } catch {
+        return (await caches.match(request)) || Response.error();
+      }
+    })());
     return;
   }
 

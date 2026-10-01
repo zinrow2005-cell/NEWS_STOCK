@@ -345,3 +345,18 @@
 .news-favorite-toggle.saved{border-style:solid;background:#fff7dc;border-color:#e7c95d;color:#765b00}
 .news-favorite-toggle:hover{transform:translateY(-1px)}
 @media(max-width:820px){.news-favorite-bar{grid-template-columns:1fr;gap:6px;padding:8px}.news-favorite-title{padding-left:2px}.news-favorite-scroll{width:100%}}
+
+
+/* v4.7.21 deployment stability + minimum readable type */
+:root{--news-center-build:"4.7.21"}
+.news-build-badge{display:inline-flex;vertical-align:middle;margin-left:6px;padding:3px 7px;border-radius:999px;background:#eef6f1;color:#4b6f5b;font-size:11px;font-weight:900;letter-spacing:.02em}
+.news-build-warning{margin:0 18px 10px;padding:10px 12px;border:1px solid #f3c98b;border-radius:12px;background:#fff8eb;color:#754c16;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.news-build-warning b{font-size:12px}.news-build-warning span{font-size:11px;flex:1;min-width:180px}.news-build-warning button{border:1px solid #d9a85d;border-radius:9px;padding:7px 10px;background:#fff;color:#744b13;font-size:11px;font-weight:900;cursor:pointer}
+/* Research/backup/sync/merge areas had legacy 7–9 px text. Keep supporting text readable on iPad. */
+.sync-head b,.sync-head small,.sync-grid span,.sync-actions button,.sync-actions label,.sync-msg,
+.backup-head b,.backup-head small,.backup-kpis small,.backup-kpis em,.backup-actions button,.backup-row button,.backup-subtitle span,.backup-row b,.backup-row small,.backup-row.history>span,.backup-empty,.backup-note,
+.compare-pickers label>span,.compare-pickers select,.compare-pickers button,.compare-actions button,.compare-summary small,.compare-item>b,.compare-item>small,.compare-change-list>div,.compare-empty,
+.merge-global b,.merge-global small,.merge-thread b,.merge-thread small,.merge-all button,.merge-choice button,.merge-actions button,.merge-field-label,.merge-side small,.merge-side p,.merge-preview b,.merge-preview span,.merge-preview small,
+.blindspot-list>div>b,.blindspot-list strong,.blindspot-list small{font-size:11px!important;line-height:1.45}
+.sync-grid input{font-size:12px!important}.backup-kpis b.backup-date{font-size:12px!important}.backup-subtitle,.compare-groups section>h4{font-size:12px!important}
+@media(max-width:700px){.news-build-warning{margin:0 10px 8px}.news-build-warning span{min-width:140px}.news-build-badge{font-size:10px}}
