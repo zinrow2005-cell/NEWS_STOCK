@@ -1,5 +1,5 @@
 const NEWS_APP_VERSION = "4.7.24";
-const CACHE_VERSION = "安心股票簿-github-pwa-2026-10-01-news-v47.24";
+const CACHE_VERSION = "安心股票簿-github-pwa-2026-10-01-news-v47.25";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const BASE_URL = new URL("./", self.location.href);
