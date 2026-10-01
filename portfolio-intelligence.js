@@ -1,6 +1,6 @@
 (()=>{
   'use strict';
-  const BUILD='4.7.22';
+  const BUILD='4.7.23';
   const NEWS_FAV_KEY='安心股票簿-news-favorites-v1';
   const panelId='portfolioIntelligencePanel';
   const state={payload:null,loading:false,sort:'event',lastRenderKey:''};
@@ -9,6 +9,11 @@
   const now=()=>Date.now();
   const parseDate=v=>{const t=new Date(v||0).getTime();return Number.isFinite(t)&&t>0?t:0};
   const fmtDate=v=>{const t=parseDate(v);if(!t)return'—';return new Date(t).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})};
+  const numberFromText=v=>{const m=String(v??'').replace(/,/g,'').match(/-?\d+(?:\.\d+)?/);return m?Number(m[0]):null};
+  const moneyFromText=v=>numberFromText(String(v??'').replace(/%/g,''));
+  const fmtMoney=v=>v!==null&&v!==''&&Number.isFinite(Number(v))?`NT$${Math.round(Number(v)).toLocaleString('zh-TW')}`:'—';
+  const fmtPrice=v=>v!==null&&v!==''&&Number.isFinite(Number(v))?`$${Number(v).toLocaleString('zh-TW',{minimumFractionDigits:0,maximumFractionDigits:2})}`:'—';
+  const fmtPct=v=>v!==null&&v!==''&&Number.isFinite(Number(v))?`${Number(v)>=0?'+':''}${Number(v).toFixed(2)}%`:'—';
   const itemStocks=x=>Array.isArray(x?.matchedStocks)?x.matchedStocks:[];
   const entry=(x,symbol)=>itemStocks(x).find(m=>norm(m?.symbol)===norm(symbol))||null;
   const matched=(x,symbol)=>!!entry(x,symbol);
@@ -42,20 +47,27 @@
       const symbol=norm(card.querySelector('.stock-code')?.textContent);
       const stockName=String(card.querySelector('.stock-name')?.textContent||symbol).trim();
       const total=card.querySelector('.holding-total');
+      const units=numberFromText(total?.querySelector('b')?.textContent)||0;
       const smalls=[...(total?.querySelectorAll('small')||[])].map(x=>x.textContent.trim());
       const spans=[...(total?.querySelectorAll('span')||[])];
-      const profitEl=spans.find(x=>/損益|NT\$|\$|\（.*%/.test(x.textContent||''))||spans.at(-1);
-      const profitText=String(profitEl?.textContent||'').trim();
-      const profitMatch=profitText.replace(/,/g,'').match(/(-?\d+(?:\.\d+)?)/);
-      const profit=profitMatch?Number(profitMatch[1]):0;
+      // 主系統 holding-total 的第一個 span 是「持有成本」，第二個 span 才是「未實現損益」。
+      // v4.7.22 誤把第一個金額當成損益，因此成本 NT$539,315 被錯標成損益。
+      const costText=String(spans[0]?.textContent||'').trim();
+      const unrealizedText=String(spans[1]?.textContent||'').trim();
+      const cost=moneyFromText(costText);
       const closeText=smalls.find(x=>x.includes('最近收盤'))||'';
-      return{symbol,stockName,profit,profitText,closeText,card};
+      const closePrice=numberFromText(closeText.replace(/最近收盤/g,''));
+      const marketValue=Number.isFinite(closePrice)&&units>0?closePrice*units:null;
+      const domUnrealized=moneyFromText(unrealizedText);
+      const unrealized=Number.isFinite(marketValue)&&Number.isFinite(cost)?marketValue-cost:(Number.isFinite(domUnrealized)?domUnrealized:null);
+      const returnRate=Number.isFinite(unrealized)&&Number.isFinite(cost)&&cost>0?unrealized/cost*100:null;
+      return{symbol,stockName,units,cost,costText,closePrice,closeText,marketValue,unrealized,unrealizedText,returnRate,card};
     }).filter(x=>x.symbol);
   }
   function favorites(){try{const x=JSON.parse(localStorage.getItem(NEWS_FAV_KEY)||'[]');return Array.isArray(x)?x.map(y=>({symbol:norm(y.symbol),stockName:String(y.stockName||y.name||y.symbol||'').trim()})).filter(y=>y.symbol):[]}catch{return[]}}
   function rankRow(row){
     const s=row.news;
-    if(state.sort==='profit')return row.profit;
+    if(state.sort==='profit')return Number.isFinite(row.unrealized)?row.unrealized:-Infinity;
     if(state.sort==='activity')return s.activity;
     const eventTs=parseDate(s.latestMajor?.publishedAt||s.latest?.publishedAt);
     const urgent=(s.freshCompany.length?1:0)*1e15 + importance(s.latestMajor)*1e12;
@@ -64,12 +76,21 @@
   function cardHtml(row,watch=false){
     const s=row.news,badge=s.freshCompany.length?'<span class="pi-alert">有新事件</span>':'', latest=s.latestMajor||s.latest;
     const natureText=latest?({company_core:'核心公司事件',company_general:'公司事件',price_action:'股價行情',market_theme:'市場／產業題材'}[nature(latest,row.symbol)]||'相關新聞'):'近 7 日無新聞';
+    const activityLabel=s.activity>=60?'高':s.activity>=25?'中':'低';
+    const pnlClass=Number(row.unrealized)<0?'neg':Number(row.unrealized)>0?'pos':'';
+    const marketMetrics=watch?'':`<div class="pi-value-grid">
+        <span><small>持有成本</small><b>${fmtMoney(row.cost)}</b></span>
+        <span><small>目前市值</small><b>${fmtMoney(row.marketValue)}</b></span>
+        <span><small>未實現損益</small><b class="${pnlClass}">${fmtMoney(row.unrealized)}</b></span>
+        <span><small>庫存報酬率</small><b class="${pnlClass}">${fmtPct(row.returnRate)}</b></span>
+      </div>
+      <div class="pi-close-line"><span>${esc(row.closeText||'最近收盤價待同步')}</span><span>持有 ${Number(row.units||0).toLocaleString('zh-TW')} 股</span></div>`;
     return `<article class="pi-stock-card ${s.freshCompany.length?'has-event':''}">
-      <div class="pi-stock-top"><div><b>${esc(row.symbol)} ${esc(row.stockName)}</b>${badge}</div><span class="pi-activity">新聞活躍 ${s.activity}</span></div>
-      ${watch?'':`<div class="pi-market-line"><span>${esc(row.closeText||'收盤價待同步')}</span><strong class="${row.profit<0?'neg':row.profit>0?'pos':''}">${esc(row.profitText||'損益待更新')}</strong></div>`}
+      <div class="pi-stock-top"><div><b>${esc(row.symbol)} ${esc(row.stockName)}</b>${badge}</div><span class="pi-activity">新聞活躍度：${activityLabel}</span></div>
+      ${marketMetrics}
       <div class="pi-kpis"><span><small>近 7 日</small><b>${s.week.length}</b></span><span><small>公司事件</small><b>${s.company.length}</b></span><span><small>核心</small><b>${s.core.length}</b></span><span><small>重大</small><b>${s.major.length}</b></span></div>
       <div class="pi-event"><small>${latest?`${natureText} · ${fmtDate(latest.publishedAt)} · 重要性 ${importance(latest)}`:'近 7 日'}</small><p>${latest?esc(latest.title):'目前沒有可顯示的個股新聞事件。'}</p></div>
-      <button type="button" data-pi-news="${esc(row.symbol)}">查看新聞情報 →</button>
+      <button class="pi-news-btn" type="button" data-pi-news="${esc(row.symbol)}">查看新聞情報 →</button>
     </article>`;
   }
   function panelHtml(rows,watchRows){
@@ -101,8 +122,8 @@
     const holdings=parseHoldings(),held=new Set(holdings.map(x=>x.symbol));
     let rows=holdings.map(x=>({...x,news:summarize(x.symbol)}));
     rows.sort((a,b)=>rankRow(b)-rankRow(a)||a.symbol.localeCompare(b.symbol));
-    const watchRows=favorites().filter(x=>!held.has(x.symbol)).map(x=>({...x,profit:0,profitText:'',closeText:'',news:summarize(x.symbol)})).sort((a,b)=>rankRow(b)-rankRow(a));
-    const key=JSON.stringify([state.sort,rows.map(x=>[x.symbol,x.profit,x.closeText,x.news.week.length,x.news.freshCompany.length]),watchRows.map(x=>[x.symbol,x.news.week.length])]);
+    const watchRows=favorites().filter(x=>!held.has(x.symbol)).map(x=>({...x,units:0,cost:null,costText:'',closePrice:null,closeText:'',marketValue:null,unrealized:null,unrealizedText:'',returnRate:null,news:summarize(x.symbol)})).sort((a,b)=>rankRow(b)-rankRow(a));
+    const key=JSON.stringify([state.sort,rows.map(x=>[x.symbol,x.cost,x.marketValue,x.unrealized,x.closeText,x.news.week.length,x.news.freshCompany.length]),watchRows.map(x=>[x.symbol,x.news.week.length])]);
     if(!force&&key===state.lastRenderKey)return;state.lastRenderKey=key;
     let panel=document.getElementById(panelId);if(!panel){panel=document.createElement('div');anchor.after(panel)}
     panel.outerHTML=panelHtml(rows,watchRows);
