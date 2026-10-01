@@ -1,6 +1,6 @@
 (()=>{
   'use strict';
-  const BUILD='4.7.23.1';
+  const BUILD='4.7.23.2';
   const NEWS_FAV_KEY='安心股票簿-news-favorites-v1';
   const panelId='portfolioIntelligencePanel';
   const state={payload:null,loading:false,sort:'event',lastRenderKey:''};
@@ -10,7 +10,7 @@
   const parseDate=v=>{const t=new Date(v||0).getTime();return Number.isFinite(t)&&t>0?t:0};
   const fmtDate=v=>{const t=parseDate(v);if(!t)return'—';return new Date(t).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})};
   const numberFromText=v=>{const m=String(v??'').replace(/,/g,'').match(/-?\d+(?:\.\d+)?/);return m?Number(m[0]):null};
-  const moneyFromText=v=>numberFromText(String(v??'').replace(/%/g,''));
+  const moneyFromText=v=>{const s=String(v??'').replace(/,/g,'').replace(/%/g,'').trim();const m=s.match(/([+-]?)\s*(?:NT\$|TWD|\$)?\s*([+-]?)\s*(\d+(?:\.\d+)?)/i);if(!m)return null;const sign=(m[1]==='-'||m[2]==='-')?-1:1;return sign*Number(m[3]);};
   const fmtMoney=v=>v!==null&&v!==''&&Number.isFinite(Number(v))?`NT$${Math.round(Number(v)).toLocaleString('zh-TW')}`:'—';
   const fmtPrice=v=>v!==null&&v!==''&&Number.isFinite(Number(v))?`$${Number(v).toLocaleString('zh-TW',{minimumFractionDigits:0,maximumFractionDigits:2})}`:'—';
   const fmtPct=v=>v!==null&&v!==''&&Number.isFinite(Number(v))?`${Number(v)>=0?'+':''}${Number(v).toFixed(2)}%`:'—';
@@ -62,10 +62,12 @@
       const closeText=smalls.find(x=>x.includes('最近收盤'))||'';
       const closePrice=numberFromText(closeText.replace(/最近收盤/g,''));
       const domUnrealized=moneyFromText(unrealizedText);
-      // 主系統本身已正確計算未實現損益，因此優先沿用主系統結果；
-      // 目前市值 = 持有成本 + 未實現損益。若 DOM 缺值才退回「收盤價 × 實際股數」。
-      const marketValue=Number.isFinite(cost)&&Number.isFinite(domUnrealized)?cost+domUnrealized:(Number.isFinite(closePrice)&&units>0?closePrice*units:null);
-      const unrealized=Number.isFinite(domUnrealized)?domUnrealized:(Number.isFinite(marketValue)&&Number.isFinite(cost)?marketValue-cost:null);
+      // v4.7.23.2：市值不再用畫面上的損益文字反推，避免 -$150,515 這類格式的負號解析風險。
+      // 正常情況：目前市值 = 最新收盤價 × 實際股數；未實現損益 = 目前市值 - 持有成本。
+      // 只有行情或股數缺失時，才使用主系統 DOM 已計算的未實現損益作為備援。
+      const quoteMarketValue=Number.isFinite(closePrice)&&closePrice>=0&&units>0?closePrice*units:null;
+      const marketValue=Number.isFinite(quoteMarketValue)?quoteMarketValue:(Number.isFinite(cost)&&Number.isFinite(domUnrealized)?cost+domUnrealized:null);
+      const unrealized=Number.isFinite(marketValue)&&Number.isFinite(cost)?marketValue-cost:(Number.isFinite(domUnrealized)?domUnrealized:null);
       const returnRate=Number.isFinite(unrealized)&&Number.isFinite(cost)&&cost>0?unrealized/cost*100:null;
       return{symbol,stockName,units,rawUnits,unitKind,displayUnits,cost,costText,closePrice,closeText,marketValue,unrealized,unrealizedText,returnRate,card};
     }).filter(x=>x.symbol);
