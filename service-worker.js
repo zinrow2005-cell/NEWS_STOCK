@@ -1,5 +1,5 @@
-const NEWS_APP_VERSION = "4.7.21";
-const CACHE_VERSION = "安心股票簿-github-pwa-2026-10-01-news-v47.21";
+const NEWS_APP_VERSION = "4.7.22";
+const CACHE_VERSION = "安心股票簿-github-pwa-2026-10-01-news-v47.22";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const BASE_URL = new URL("./", self.location.href);
@@ -16,6 +16,8 @@ const CORE_FILES = [
   appPath("stock-directory.json"),
   appPath("news-center.css"),
   appPath("news-center.js"),
+  appPath("portfolio-intelligence.css"),
+  appPath("portfolio-intelligence.js"),
 ];
 
 self.addEventListener("install", (event) => {
@@ -121,7 +123,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (url.pathname === appPath("news-center.js") || url.pathname === appPath("news-center.css")) {
+  if ([appPath("news-center.js"), appPath("news-center.css"), appPath("portfolio-intelligence.js"), appPath("portfolio-intelligence.css")].includes(url.pathname)) {
     event.respondWith((async () => {
       try {
         const fresh = await fetch(new Request(request, { cache: "no-store" }));

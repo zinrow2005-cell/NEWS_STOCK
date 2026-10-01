@@ -348,7 +348,7 @@
 
 
 /* v4.7.21 deployment stability + minimum readable type */
-:root{--news-center-build:"4.7.21"}
+:root{--news-center-build:"4.7.22"}
 .news-build-badge{display:inline-flex;vertical-align:middle;margin-left:6px;padding:3px 7px;border-radius:999px;background:#eef6f1;color:#4b6f5b;font-size:11px;font-weight:900;letter-spacing:.02em}
 .news-build-warning{margin:0 18px 10px;padding:10px 12px;border:1px solid #f3c98b;border-radius:12px;background:#fff8eb;color:#754c16;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .news-build-warning b{font-size:12px}.news-build-warning span{font-size:11px;flex:1;min-width:180px}.news-build-warning button{border:1px solid #d9a85d;border-radius:9px;padding:7px 10px;background:#fff;color:#744b13;font-size:11px;font-weight:900;cursor:pointer}
