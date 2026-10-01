@@ -1,6 +1,6 @@
 (()=>{
   'use strict';
-  const BUILD='4.7.23';
+  const BUILD='4.7.23.1';
   const NEWS_FAV_KEY='安心股票簿-news-favorites-v1';
   const panelId='portfolioIntelligencePanel';
   const state={payload:null,loading:false,sort:'event',lastRenderKey:''};
@@ -47,21 +47,27 @@
       const symbol=norm(card.querySelector('.stock-code')?.textContent);
       const stockName=String(card.querySelector('.stock-name')?.textContent||symbol).trim();
       const total=card.querySelector('.holding-total');
-      const units=numberFromText(total?.querySelector('b')?.textContent)||0;
+      const rawUnits=numberFromText(total?.querySelector('b')?.textContent)||0;
+      const totalText=String(total?.textContent||'');
+      // 主系統持股摘要以「張」顯示整張庫存，例如 6 張 = 6,000 股。
+      // 若是零股則可能直接以「股」顯示。情報卡內部一律換算成實際股數計算市值。
+      const unitKind=/張/.test(totalText)?'lot':'share';
+      const units=unitKind==='lot'?rawUnits*1000:rawUnits;
+      const displayUnits=unitKind==='lot'?`${rawUnits.toLocaleString('zh-TW',{maximumFractionDigits:3})} 張（${units.toLocaleString('zh-TW')} 股）`:`${units.toLocaleString('zh-TW')} 股`;
       const smalls=[...(total?.querySelectorAll('small')||[])].map(x=>x.textContent.trim());
       const spans=[...(total?.querySelectorAll('span')||[])];
-      // 主系統 holding-total 的第一個 span 是「持有成本」，第二個 span 才是「未實現損益」。
-      // v4.7.22 誤把第一個金額當成損益，因此成本 NT$539,315 被錯標成損益。
       const costText=String(spans[0]?.textContent||'').trim();
       const unrealizedText=String(spans[1]?.textContent||'').trim();
       const cost=moneyFromText(costText);
       const closeText=smalls.find(x=>x.includes('最近收盤'))||'';
       const closePrice=numberFromText(closeText.replace(/最近收盤/g,''));
-      const marketValue=Number.isFinite(closePrice)&&units>0?closePrice*units:null;
       const domUnrealized=moneyFromText(unrealizedText);
-      const unrealized=Number.isFinite(marketValue)&&Number.isFinite(cost)?marketValue-cost:(Number.isFinite(domUnrealized)?domUnrealized:null);
+      // 主系統本身已正確計算未實現損益，因此優先沿用主系統結果；
+      // 目前市值 = 持有成本 + 未實現損益。若 DOM 缺值才退回「收盤價 × 實際股數」。
+      const marketValue=Number.isFinite(cost)&&Number.isFinite(domUnrealized)?cost+domUnrealized:(Number.isFinite(closePrice)&&units>0?closePrice*units:null);
+      const unrealized=Number.isFinite(domUnrealized)?domUnrealized:(Number.isFinite(marketValue)&&Number.isFinite(cost)?marketValue-cost:null);
       const returnRate=Number.isFinite(unrealized)&&Number.isFinite(cost)&&cost>0?unrealized/cost*100:null;
-      return{symbol,stockName,units,cost,costText,closePrice,closeText,marketValue,unrealized,unrealizedText,returnRate,card};
+      return{symbol,stockName,units,rawUnits,unitKind,displayUnits,cost,costText,closePrice,closeText,marketValue,unrealized,unrealizedText,returnRate,card};
     }).filter(x=>x.symbol);
   }
   function favorites(){try{const x=JSON.parse(localStorage.getItem(NEWS_FAV_KEY)||'[]');return Array.isArray(x)?x.map(y=>({symbol:norm(y.symbol),stockName:String(y.stockName||y.name||y.symbol||'').trim()})).filter(y=>y.symbol):[]}catch{return[]}}
@@ -84,7 +90,7 @@
         <span><small>未實現損益</small><b class="${pnlClass}">${fmtMoney(row.unrealized)}</b></span>
         <span><small>庫存報酬率</small><b class="${pnlClass}">${fmtPct(row.returnRate)}</b></span>
       </div>
-      <div class="pi-close-line"><span>${esc(row.closeText||'最近收盤價待同步')}</span><span>持有 ${Number(row.units||0).toLocaleString('zh-TW')} 股</span></div>`;
+      <div class="pi-close-line"><span>${esc(row.closeText||'最近收盤價待同步')}</span><span>持有 ${esc(row.displayUnits||`${Number(row.units||0).toLocaleString('zh-TW')} 股`)}</span></div>`;
     return `<article class="pi-stock-card ${s.freshCompany.length?'has-event':''}">
       <div class="pi-stock-top"><div><b>${esc(row.symbol)} ${esc(row.stockName)}</b>${badge}</div><span class="pi-activity">新聞活躍度：${activityLabel}</span></div>
       ${marketMetrics}
