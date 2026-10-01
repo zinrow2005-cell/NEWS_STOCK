@@ -103,6 +103,22 @@ input[name="symbol"]{text-transform:uppercase}
 <style id="v4719-market-health">
 .market-sync-health{margin:0 0 16px;padding:14px 16px;border:1px solid #d8e5df;border-radius:18px;background:linear-gradient(135deg,#f8fcfa 0%,#fff 100%);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}.market-sync-health.ok{border-color:#cfe6dc;background:linear-gradient(135deg,#f3fbf7,#fff)}.market-sync-health.attention{border-color:#eadbb9;background:linear-gradient(135deg,#fffaf0,#fff)}.market-sync-health.warn{border-color:#efc8c2;background:linear-gradient(135deg,#fff6f4,#fff)}.market-sync-health-main{min-width:0}.market-sync-health-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.market-sync-health-title b{font-size:15px;color:#173d34}.market-sync-health-state{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;background:#e8f4ee;color:#24604f}.market-sync-health.attention .market-sync-health-state{background:#fff0cf;color:#8a641f}.market-sync-health.warn .market-sync-health-state{background:#fde5e1;color:#9b4338}.market-sync-health-metrics{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.market-sync-health-metrics span{display:inline-flex;align-items:baseline;gap:5px;padding:5px 8px;border-radius:10px;background:#fff;border:1px solid #e3ece8;color:#60736d;font-size:11px}.market-sync-health-metrics b{font-size:13px;color:#173d34}.market-sync-health-detail{margin:7px 0 0;color:#6b7b76;font-size:11px;white-space:normal}.market-sync-health-action{display:flex;align-items:center;gap:8px}.market-sync-health-action .btn{white-space:nowrap}.market-sync-health-source{font-size:10px;color:#83918d;margin-top:4px}.market-price-stale-note{color:#95641f!important}.market-price-missing-note{color:#a74c42!important}@media(max-width:760px){.market-sync-health{grid-template-columns:1fr}.market-sync-health-action{justify-content:flex-start}.market-sync-health-metrics{gap:6px}.market-sync-health-metrics span{padding:4px 7px}}
 </style>
+
+<style id="v47233-date-nowrap-fix">
+/* v4.7.23.3: Keep latest close date on one line in holding cards. */
+.holding-card summary .holding-total small{
+  white-space:nowrap;
+  word-break:keep-all;
+  overflow-wrap:normal;
+}
+.holding-card summary .holding-total{
+  min-width:max-content;
+}
+@media (max-width: 760px){
+  .holding-card summary .holding-total{min-width:0;}
+  .holding-card summary .holding-total small{font-size:12px;}
+}
+</style>
 </head>
   <body>
     <div id="root"></div>
