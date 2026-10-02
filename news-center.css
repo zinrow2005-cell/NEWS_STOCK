@@ -522,7 +522,7 @@
 
 
 /* === v4.7.27 News Center Complete Typography Audit === */
-:root{--news-center-build:"4.7.27";--news-body-readable:17.5px;--news-meta-readable:14.5px;--news-support-readable:14px}
+:root{--news-center-build:"4.7.27.1";--news-body-readable:17.5px;--news-meta-readable:14.5px;--news-support-readable:14px}
 
 /* Global readable floor: all ordinary controls and supporting text */
 .news-shell{font-size:var(--news-body-readable)!important;line-height:1.68!important}
@@ -631,3 +631,5 @@
 
 /* === v4.7.27 Fresh News / Date Refresh === */
 .news-freshness-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0 8px;padding:11px 14px;border-radius:12px;font-size:14px;line-height:1.45;border:1px solid #cfe4dc;background:#f3fbf7;color:#184f40}.news-freshness-banner[hidden]{display:none}.news-freshness-banner b{font-size:14.5px}.news-freshness-banner span{font-size:13.5px;color:#4a665f}.news-freshness-banner.stale{background:#fff7e9;border-color:#efc778;color:#8a4b00}.news-freshness-banner.stale span{color:#7b5d2d}.news-freshness-banner button{margin-left:auto;border:1px solid currentColor;border-radius:9px;background:#fff;padding:7px 11px;font:inherit;font-weight:700;color:inherit;cursor:pointer}@media(max-width:760px){.news-freshness-banner{font-size:13.5px}.news-freshness-banner span{width:100%;font-size:13px}.news-freshness-banner button{margin-left:0}}
+
+/* v4.7.27.1 initialization hotfix */

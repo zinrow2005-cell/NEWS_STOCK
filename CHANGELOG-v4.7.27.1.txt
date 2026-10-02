@@ -1,0 +1,5 @@
+v4.7.27.1 HOTFIX
+- Restore missing buildOptions() removed accidentally in v4.7.27.
+- Fix News Center initialization failure after stock-news.json loads.
+- Restore source/category option population, stock datalist rebuild and control sync.
+- Keep live refresh and Taiwan-calendar-day logic from v4.7.27.
