@@ -1,9 +1,9 @@
 (()=>{
   'use strict';
-  const BUILD='4.7.23.2';
+  const BUILD='4.7.28';
   const NEWS_FAV_KEY='安心股票簿-news-favorites-v1';
   const panelId='portfolioIntelligencePanel';
-  const state={payload:null,loading:false,sort:'event',lastRenderKey:''};
+  const state={payload:null,loading:false,loadedAt:0,sort:'event',lastRenderKey:''};
   const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
   const norm=s=>String(s??'').trim().toUpperCase();
   const now=()=>Date.now();
@@ -106,15 +106,17 @@
     return `<section id="${panelId}" class="portfolio-intelligence" data-build="${BUILD}">
       <div class="pi-head"><div><span class="pi-kicker">PORTFOLIO INTELLIGENCE</span><h2>我的持股情報中心</h2><p>把持股行情、損益與近 7 日新聞事件放在同一頁；「研究優先」只代表資訊閱讀順序，不是買賣建議。</p></div><div class="pi-updated"><small>新聞資料</small><b>${esc(updated)}</b></div></div>
       <div class="pi-summary"><span><small>目前持股</small><b>${rows.length}</b></span><span><small>24h 有新事件</small><b>${fresh}</b></span><span><small>近 7 日新聞</small><b>${totalNews}</b></span><span><small>重大事件</small><b>${major}</b></span></div>
-      <div class="pi-toolbar"><b>持股情報</b><div><button data-pi-sort="event" class="${state.sort==='event'?'active':''}">最新事件</button><button data-pi-sort="activity" class="${state.sort==='activity'?'active':''}">新聞活躍度</button><button data-pi-sort="profit" class="${state.sort==='profit'?'active':''}">未實現損益</button></div></div>
+      <div class="pi-toolbar"><b>持股情報</b><div><button type="button" data-pi-sort="event" class="${state.sort==='event'?'active':''}">最新事件</button><button type="button" data-pi-sort="activity" class="${state.sort==='activity'?'active':''}">新聞活躍度</button><button type="button" data-pi-sort="profit" class="${state.sort==='profit'?'active':''}">未實現損益</button></div></div>
       <div class="pi-grid">${rows.length?rows.map(x=>cardHtml(x)).join(''):'<div class="pi-empty">目前沒有持股資料。</div>'}</div>
       ${watchRows.length?`<details class="pi-watch"><summary>⭐ 觀察中（收藏但未持有） <b>${watchRows.length}</b></summary><div class="pi-grid watch">${watchRows.map(x=>cardHtml(x,true)).join('')}</div></details>`:''}
     </section>`;
   }
-  async function fetchNews(){
-    if(state.payload||state.loading)return;state.loading=true;
+  async function fetchNews(force=false){
+    if(state.loading)return;
+    if(!force&&state.payload&&Date.now()-state.loadedAt<15*60*1000)return;
+    state.loading=true;
     const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),8000);
-    try{const r=await fetch(`./stock-news.json?t=${Date.now()}`,{cache:'no-store',signal:ctl.signal});if(!r.ok)throw Error(String(r.status));const p=await r.json();state.payload=p&&Array.isArray(p.items)?p:{items:[]}}
+    try{const r=await fetch(`./stock-news.json?t=${Date.now()}`,{cache:'no-store',signal:ctl.signal});if(!r.ok)throw Error(String(r.status));const p=await r.json();state.payload=p&&Array.isArray(p.items)?p:{items:[]};state.loadedAt=Date.now()}
     catch{state.payload={items:[],generatedAt:null}}
     finally{clearTimeout(tm);state.loading=false}
   }
@@ -140,6 +142,6 @@
   let timer=null;const schedule=()=>{clearTimeout(timer);timer=setTimeout(()=>render(false),180)};
   const observer=new MutationObserver(schedule);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{observer.observe(document.body,{childList:true,subtree:true,characterData:true});schedule()});else{observer.observe(document.body,{childList:true,subtree:true,characterData:true});schedule()}
-  window.addEventListener('storage',schedule);window.addEventListener('online',()=>{state.payload=null;schedule()});
-  window.PortfolioIntelligence={version:BUILD,refresh:()=>{state.payload=null;state.lastRenderKey='';return render(true)}};
+  window.addEventListener('storage',schedule);window.addEventListener('online',()=>{state.payload=null;state.loadedAt=0;schedule()});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-state.loadedAt>=15*60*1000){state.payload=null;schedule()}});window.addEventListener('focus',()=>{if(Date.now()-state.loadedAt>=15*60*1000){state.payload=null;schedule()}});
+  window.PortfolioIntelligence={version:BUILD,refresh:()=>{state.payload=null;state.loadedAt=0;state.lastRenderKey='';return render(true)}};
 })();
