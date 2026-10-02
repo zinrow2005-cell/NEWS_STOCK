@@ -1,0 +1,4 @@
+v4.7.27.2
+- 恢復 v4.7.26 被即時刷新改版誤刪的新聞中心核心函式。
+- 修正 updateReadModes / dateMatch / queryMatch / 個股摘要 / 事件合併等 undefined。
+- 保留 v4.7.27 的最新新聞自動刷新與台灣今日日期邏輯。
