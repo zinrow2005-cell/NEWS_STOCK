@@ -1,5 +1,5 @@
-const NEWS_APP_VERSION = "4.7.26";
-const CACHE_VERSION = "安心股票簿-github-pwa-2026-10-01-news-v47.26";
+const NEWS_APP_VERSION = "4.7.27";
+const CACHE_VERSION = "安心股票簿-github-pwa-2026-10-02-news-v47.27";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const BASE_URL = new URL("./", self.location.href);
@@ -141,15 +141,16 @@ self.addEventListener("fetch", (event) => {
 
   if (url.pathname === appPath("market-close.json") || url.pathname === appPath("market-history.json") || url.pathname === appPath("stock-news.json")) {
     event.respondWith((async () => {
+      const canonicalRequest = new Request(`${url.origin}${url.pathname}`, { method: "GET" });
       try {
         const response = await fetch(new Request(request, { cache: "no-store" }));
         if (response.ok) {
           const cache = await caches.open(ASSET_CACHE);
-          await cache.put(request, response.clone());
+          await cache.put(canonicalRequest, response.clone());
         }
         return response;
       } catch (error) {
-        return (await caches.match(request)) || Response.error();
+        return (await caches.match(canonicalRequest)) || Response.error();
       }
     })());
     return;

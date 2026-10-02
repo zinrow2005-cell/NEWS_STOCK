@@ -1,0 +1,20 @@
+NEWS_STOCK v4.7.27 - 新聞即時更新與日期修正版
+日期：2026-10-02
+
+修正重點：
+1. 新聞中心每次開啟時都會重新檢查 stock-news.json，而不是只使用記憶體中的舊資料。
+2. 同時讀取 GitHub Pages 與 GitHub raw main，依 generatedAt / 最新文章時間自動選擇較新的資料。
+3. stock-news.json 加入 cache-busting 時間戳與 no-cache/no-store，降低 PWA / CDN 舊資料問題。
+4. 視窗重新取得焦點、從背景回到前景、網路重新連線時，自動檢查新聞更新。
+5. 新聞中心開啟期間每 15 分鐘檢查一次；2 分鐘內避免重複請求。
+6. 新增「新聞資料已更新／可能過期」狀態列，顯示資料檔時間、最新文章時間與實際來源。
+7. 每日市場情報的「今天」改為台灣曆日（Asia/Taipei），只要今天有新聞就優先只顯示今天；今天尚無資料才退回近 24 小時。
+8. Service Worker 動態 JSON 改成 network-first + canonical cache，避免 query-string 快取累積，同時保留離線備援。
+9. JS / CSS / Service Worker 版本統一為 v4.7.27。
+
+覆蓋檔案：
+- news-center.js
+- news-center.css
+- service-worker.js
+
+部署後請 Ctrl + F5 一次。
