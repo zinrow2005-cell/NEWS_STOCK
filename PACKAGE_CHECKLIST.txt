@@ -1,0 +1,31 @@
+NEWS_STOCK v4.7.27 COMPLETE - 完整包檢查
+
+[必須存在]
+index.html
+404.html
+news-center.js
+news-center.css
+portfolio-intelligence.js
+portfolio-intelligence.css
+service-worker.js
+manifest.webmanifest
+stock-directory.json
+stock-news.json
+market-close.json
+market-history.json
+.github/workflows/update-stock-news.yml
+.github/workflows/update-market-close.yml
+scripts/update_stock_news.py
+scripts/validate_stock_news.py
+scripts/selftest_news_pipeline.py
+scripts/update_market_close.py
+
+[首次 GitHub 重新部署後]
+1. Settings > Pages > main / (root)
+2. Actions > Update Taiwan stock news > Run workflow
+3. Actions > Update Taiwan market close > Run workflow
+4. 打開 Pages，確認主介面 v4.7.27 且持股與總覽都可見含息回本價
+5. 若是新網址，匯入個人 JSON 備份
+
+[功能回歸]
+node tests/test_breakeven.cjs  # 11 種損益／配股／配息／轉撥情境

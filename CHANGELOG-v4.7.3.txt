@@ -1,0 +1,9 @@
+v4.7.3 個股新聞相關性篩選
+
+- matchedStocks 新增 relevanceScore / relevanceLevel / relevanceReasons / isPrimary。
+- 個股搜尋預設只顯示「高度相關」與「相關」，排除僅順帶提及的文章。
+- 新增「顯示順帶提及」開關，可自行放寬。
+- 股票代號或完整公司名稱輸入搜尋框時，直接依 matchedStocks 精準篩選，不再只做全文字串搜尋。
+- 個股新聞排序會先比較個股相關性，再比較事件重要性與時間。
+- 新聞卡顯示「高度相關 / 相關 / 順帶提及」與分數，滑鼠可查看判定依據。
+- 保留舊版 stock-news.json 相容：若尚未含 relevance metadata，前端會以同一規則做 fallback 判斷。

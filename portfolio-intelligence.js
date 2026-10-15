@@ -1,15 +1,16 @@
 (()=>{
   'use strict';
-  const BUILD='4.7.28';
+  const BUILD='4.7.27';
   const NEWS_FAV_KEY='安心股票簿-news-favorites-v1';
   const panelId='portfolioIntelligencePanel';
-  const state={payload:null,loading:false,loadedAt:0,sort:'event',lastRenderKey:''};
+  const state={payload:null,loading:false,sort:'event',lastRenderKey:''};
   const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
   const norm=s=>String(s??'').trim().toUpperCase();
   const now=()=>Date.now();
   const parseDate=v=>{const t=new Date(v||0).getTime();return Number.isFinite(t)&&t>0?t:0};
   const fmtDate=v=>{const t=parseDate(v);if(!t)return'—';return new Date(t).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})};
   const numberFromText=v=>{const m=String(v??'').replace(/,/g,'').match(/-?\d+(?:\.\d+)?/);return m?Number(m[0]):null};
+  const unitsFromText=v=>{const text=String(v??'').replace(/[,\s]/g,'');const lots=text.match(/(\d+(?:\.\d+)?)張/),odd=text.match(/(\d+)股/);if(lots||odd)return Math.round((lots?Number(lots[1])*1000:0)+(odd?Number(odd[1]):0));return numberFromText(text)||0;};
   const moneyFromText=v=>{const s=String(v??'').replace(/,/g,'').replace(/%/g,'').trim();const m=s.match(/([+-]?)\s*(?:NT\$|TWD|\$)?\s*([+-]?)\s*(\d+(?:\.\d+)?)/i);if(!m)return null;const sign=(m[1]==='-'||m[2]==='-')?-1:1;return sign*Number(m[3]);};
   const fmtMoney=v=>v!==null&&v!==''&&Number.isFinite(Number(v))?`NT$${Math.round(Number(v)).toLocaleString('zh-TW')}`:'—';
   const fmtPrice=v=>v!==null&&v!==''&&Number.isFinite(Number(v))?`$${Number(v).toLocaleString('zh-TW',{minimumFractionDigits:0,maximumFractionDigits:2})}`:'—';
@@ -47,15 +48,14 @@
       const symbol=norm(card.querySelector('.stock-code')?.textContent);
       const stockName=String(card.querySelector('.stock-name')?.textContent||symbol).trim();
       const total=card.querySelector('.holding-total');
-      const rawUnits=numberFromText(total?.querySelector('b')?.textContent)||0;
-      const totalText=String(total?.textContent||'');
-      // 主系統持股摘要以「張」顯示整張庫存，例如 6 張 = 6,000 股。
-      // 若是零股則可能直接以「股」顯示。情報卡內部一律換算成實際股數計算市值。
-      const unitKind=/張/.test(totalText)?'lot':'share';
-      const units=unitKind==='lot'?rawUnits*1000:rawUnits;
-      const displayUnits=unitKind==='lot'?`${rawUnits.toLocaleString('zh-TW',{maximumFractionDigits:3})} 張（${units.toLocaleString('zh-TW')} 股）`:`${units.toLocaleString('zh-TW')} 股`;
+      const unitText=String(total?.querySelector('b')?.textContent||'');
+      // 1張100股必須換算為1,100股，不能只讀取第一個數字「1」。
+      const units=unitsFromText(unitText);
+      const unitKind=/張/.test(unitText)?'lot':'share';
+      const rawUnits=unitKind==='lot'?units/1000:units;
+      const displayUnits=unitKind==='lot'?`${Math.floor(units/1000).toLocaleString('zh-TW')} 張${units%1000?` ${units%1000} 股`:''}（${units.toLocaleString('zh-TW')} 股）`:`${units.toLocaleString('zh-TW')} 股`;
       const smalls=[...(total?.querySelectorAll('small')||[])].map(x=>x.textContent.trim());
-      const spans=[...(total?.querySelectorAll('span')||[])];
+      const spans=[...(total?.querySelectorAll(':scope > span')||[])];
       const costText=String(spans[0]?.textContent||'').trim();
       const unrealizedText=String(spans[1]?.textContent||'').trim();
       const cost=moneyFromText(costText);
@@ -106,17 +106,15 @@
     return `<section id="${panelId}" class="portfolio-intelligence" data-build="${BUILD}">
       <div class="pi-head"><div><span class="pi-kicker">PORTFOLIO INTELLIGENCE</span><h2>我的持股情報中心</h2><p>把持股行情、損益與近 7 日新聞事件放在同一頁；「研究優先」只代表資訊閱讀順序，不是買賣建議。</p></div><div class="pi-updated"><small>新聞資料</small><b>${esc(updated)}</b></div></div>
       <div class="pi-summary"><span><small>目前持股</small><b>${rows.length}</b></span><span><small>24h 有新事件</small><b>${fresh}</b></span><span><small>近 7 日新聞</small><b>${totalNews}</b></span><span><small>重大事件</small><b>${major}</b></span></div>
-      <div class="pi-toolbar"><b>持股情報</b><div><button type="button" data-pi-sort="event" class="${state.sort==='event'?'active':''}">最新事件</button><button type="button" data-pi-sort="activity" class="${state.sort==='activity'?'active':''}">新聞活躍度</button><button type="button" data-pi-sort="profit" class="${state.sort==='profit'?'active':''}">未實現損益</button></div></div>
+      <div class="pi-toolbar"><b>持股情報</b><div><button data-pi-sort="event" class="${state.sort==='event'?'active':''}">最新事件</button><button data-pi-sort="activity" class="${state.sort==='activity'?'active':''}">新聞活躍度</button><button data-pi-sort="profit" class="${state.sort==='profit'?'active':''}">未實現損益</button></div></div>
       <div class="pi-grid">${rows.length?rows.map(x=>cardHtml(x)).join(''):'<div class="pi-empty">目前沒有持股資料。</div>'}</div>
       ${watchRows.length?`<details class="pi-watch"><summary>⭐ 觀察中（收藏但未持有） <b>${watchRows.length}</b></summary><div class="pi-grid watch">${watchRows.map(x=>cardHtml(x,true)).join('')}</div></details>`:''}
     </section>`;
   }
-  async function fetchNews(force=false){
-    if(state.loading)return;
-    if(!force&&state.payload&&Date.now()-state.loadedAt<15*60*1000)return;
-    state.loading=true;
+  async function fetchNews(){
+    if(state.payload||state.loading)return;state.loading=true;
     const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),8000);
-    try{const r=await fetch(`./stock-news.json?t=${Date.now()}`,{cache:'no-store',signal:ctl.signal});if(!r.ok)throw Error(String(r.status));const p=await r.json();state.payload=p&&Array.isArray(p.items)?p:{items:[]};state.loadedAt=Date.now()}
+    try{const r=await fetch(`./stock-news.json?t=${Date.now()}`,{cache:'no-store',signal:ctl.signal});if(!r.ok)throw Error(String(r.status));const p=await r.json();state.payload=p&&Array.isArray(p.items)?p:{items:[]}}
     catch{state.payload={items:[],generatedAt:null}}
     finally{clearTimeout(tm);state.loading=false}
   }
@@ -142,6 +140,6 @@
   let timer=null;const schedule=()=>{clearTimeout(timer);timer=setTimeout(()=>render(false),180)};
   const observer=new MutationObserver(schedule);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{observer.observe(document.body,{childList:true,subtree:true,characterData:true});schedule()});else{observer.observe(document.body,{childList:true,subtree:true,characterData:true});schedule()}
-  window.addEventListener('storage',schedule);window.addEventListener('online',()=>{state.payload=null;state.loadedAt=0;schedule()});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-state.loadedAt>=15*60*1000){state.payload=null;schedule()}});window.addEventListener('focus',()=>{if(Date.now()-state.loadedAt>=15*60*1000){state.payload=null;schedule()}});
-  window.PortfolioIntelligence={version:BUILD,refresh:()=>{state.payload=null;state.loadedAt=0;state.lastRenderKey='';return render(true)}};
+  window.addEventListener('storage',schedule);window.addEventListener('online',()=>{state.payload=null;schedule()});
+  window.PortfolioIntelligence={version:BUILD,refresh:()=>{state.payload=null;state.lastRenderKey='';return render(true)}};
 })();
