@@ -1,0 +1,9 @@
+v4.7.9 — 公司事件 vs 股價行情分離
+
+- CORE / GENERAL 僅允許真正公司營運、財務、法說、訂單、重大公告等事件。
+- 純股價漲跌、盤中/收盤、技術線型、目標價/評等新聞不得進入 PRIMARY。
+- 新增 relationNature：company_core / company_general / price_action / market_theme / related。
+- 前端新聞卡新增「股價行情」「市場題材」標籤。
+- 新增「股價行情」事件類別，原新聞保留，不會被丟棄。
+- GitHub Actions 驗證新增 nature 統計與硬性防呆。
+- Validation 抽樣新增 PRICE / MARKET 標題，方便繼續人工校正。

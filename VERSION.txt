@@ -1,6 +1,7 @@
 安心股票簿 / NEWS_STOCK
-Stable complete package: v4.7.27
+Stable complete package: v4.7.29
 Package date: 2026-10-15
-Portfolio UI: v4.7.27
-News center base functionality: v4.7.26
-Service Worker cache: news-v47.27
+Portfolio / overview UI: v4.7.28 (unchanged)
+Code layout + cache + docs: v4.7.29
+Service Worker cache: news-v47.29
+Personal data schema: unchanged

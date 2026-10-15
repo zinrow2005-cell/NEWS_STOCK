@@ -1,4 +1,4 @@
-# 安心股票簿 v4.7.27｜重新部署到 GitHub 完整操作步驟
+# 安心股票簿 v4.7.29｜重新部署到 GitHub 完整操作步驟
 
 本說明適用於「Repository 被刪除後重新建立」、「換新的 Repository」或「想用完整正式版重新覆蓋」的情況。
 
@@ -39,7 +39,7 @@
 
 ### 最重要的規則
 
-解壓縮 `NEWS_STOCK-v4.7.27-COMPLETE-GITHUB.zip` 後，**上傳「資料夾裡面的全部內容」**，不要把最外層資料夾本身再包一層。
+解壓縮 `NEWS_STOCK-v4.7.29-COMPLETE-GITHUB.zip` 後，**上傳「資料夾裡面的全部內容」**，不要把最外層資料夾本身再包一層。
 
 GitHub Repository 最外層必須直接看到：
 
@@ -66,7 +66,7 @@ scripts/
 2. 按 **Add file → Upload files**。
 3. 將完整版資料夾內的檔案／資料夾拖入。
 4. 確認 `.github` 也有上傳。
-5. Commit message 可填：`Initial deploy NEWS_STOCK v4.7.27`。
+5. Commit message 可填：`Initial deploy NEWS_STOCK v4.7.29`。
 6. 按 **Commit changes**。
 
 > 注意：若你的瀏覽器拖曳上傳沒有保留 `.github` 隱藏資料夾，請另外建立 `.github/workflows/`，再把兩個 yml 工作流程放進去。
@@ -207,7 +207,7 @@ permissions:
 
 ### 新聞中心
 
-- [ ] 新聞中心右上／標題附近顯示 **v4.7.27**。
+- [ ] 新聞中心右上／標題附近顯示 **v4.7.29**。
 - [ ] 每日市場情報有資料。
 - [ ] 搜尋 2330／2317／2454 有新聞。
 - [ ] 新聞收藏可以新增／取消。
@@ -258,7 +258,7 @@ permissions:
 3. 重新整理。
 4. 再開主畫面上的 PWA。
 
-v4.7.27 已有版本一致性與 network-first 保護；正常情況下不需要頻繁清除所有網站資料。
+v4.7.29 已有版本一致性與 network-first 保護；正常情況下不需要頻繁清除所有網站資料。
 
 ---
 
@@ -335,3 +335,11 @@ market-history.json
 3. **匯入自己的 JSON 備份並核對持股成本／股數／損益**
 
 三項都正確後，就可以正常日常使用。
+
+## v4.7.28
+此版修正持股卡桌機/平板/手機寬度溢位問題。更新後如仍出現舊布局，請重新整理頁面，或關閉 PWA 再重開，資料請先備份。
+
+
+## V4.7.29 完整整理版補充
+
+`index.html` 與 `404.html` 現在會引用 `assets/app.js`、`assets/app-core.css`、`assets/app-overrides.css`；這三個檔案**必須同時上傳**，只上傳 HTML 會造成空白畫面。若原儲存庫保留舊的 `assets/index-*.js/css`，可手動刪除，不影響本版。

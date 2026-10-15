@@ -1,0 +1,12 @@
+v4.7.8 主角純度＋核心重要性雙層判斷
+
+- 新增 primaryTier: core / general / none
+- 新增 isCorePrimary
+- 核心主角：公司主體 + 營收/財報/法說/訂單/展望/獲利/重大投資等核心事件
+- 一般主角：公司主體，但偏子公司、廠房、使用權資產、例行行政公告
+- 強化市場/族群新聞排除：科技股、電子股、半導體股、美股、亞股等市場語境不列主角
+- 強化跨公司題材排除：標題前段以「、」並列多個主體時，不列單一公司主角
+- 前端新增「只看核心主角」篩選
+- 新聞卡顯示「核心主角 / 一般主角」不同標記
+- Validate 顯示 core/general/primary/high/related/mention，並加入 core <= primary <= high 硬性驗證
+- GitHub Actions 抽樣改為 CORE / GENERAL / HIGH_ONLY / MENTION，方便人工校正

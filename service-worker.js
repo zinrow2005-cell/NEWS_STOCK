@@ -1,5 +1,5 @@
-const NEWS_APP_VERSION = "4.7.27";
-const CACHE_VERSION = "安心股票簿-github-pwa-2026-10-01-news-v47.27";
+const NEWS_APP_VERSION = "4.7.29";
+const CACHE_VERSION = "安心股票簿-github-pwa-2026-10-01-news-v47.29";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const BASE_URL = new URL("./", self.location.href);
@@ -9,6 +9,9 @@ const OFFLINE_URL = appPath("offline.html");
 const CORE_FILES = [
   OFFLINE_URL,
   appPath("manifest.webmanifest"),
+  appPath("assets/app-core.css"),
+  appPath("assets/app-overrides.css"),
+  appPath("assets/app.js"),
   appPath("favicon.svg"),
   appPath("icon-192.png"),
   appPath("icon-512.png"),
@@ -123,7 +126,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if ([appPath("news-center.js"), appPath("news-center.css"), appPath("portfolio-intelligence.js"), appPath("portfolio-intelligence.css")].includes(url.pathname)) {
+  if ([appPath("assets/app-core.css"), appPath("assets/app-overrides.css"), appPath("assets/app.js"), appPath("news-center.js"), appPath("news-center.css"), appPath("portfolio-intelligence.js"), appPath("portfolio-intelligence.css")].includes(url.pathname)) {
     event.respondWith((async () => {
       try {
         const fresh = await fetch(new Request(request, { cache: "no-store" }));

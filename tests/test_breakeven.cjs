@@ -1,6 +1,6 @@
 const fs = require('fs'), vm=require('vm'), assert=require('assert');
-const s=fs.readFileSync(require('path').join(__dirname,'..','index.html'),'utf8');
-const beginning=s.indexOf('var D=(e,t)=>',269500), ending=s.indexOf('function te(e,t,n,r,i,a,o=',beginning);
+const s=fs.readFileSync(require('path').join(__dirname,'..','assets','app.js'),'utf8');
+const beginning=s.indexOf('var D=(e,t)=>'), ending=s.indexOf('function te(e,t,n,r,i,a,o=',beginning);
 if(beginning<0||ending<0)throw Error('missing engine');
 const c={};vm.runInNewContext(s.slice(beginning,ending)+';globalThis.testK=k;globalThis.testEE=ee;',c);
 const trade=(id,side,date,units,price,brokerId=1,symbol='9802')=>({id,side,tradeDate:date,units,price,brokerId,symbol,stockName:symbol,fee:0,tax:0});

@@ -1,31 +1,12 @@
-NEWS_STOCK v4.7.27 COMPLETE - 完整包檢查
-
-[必須存在]
-index.html
-404.html
-news-center.js
-news-center.css
-portfolio-intelligence.js
-portfolio-intelligence.css
-service-worker.js
-manifest.webmanifest
-stock-directory.json
-stock-news.json
-market-close.json
-market-history.json
-.github/workflows/update-stock-news.yml
-.github/workflows/update-market-close.yml
-scripts/update_stock_news.py
-scripts/validate_stock_news.py
-scripts/selftest_news_pipeline.py
-scripts/update_market_close.py
-
-[首次 GitHub 重新部署後]
-1. Settings > Pages > main / (root)
-2. Actions > Update Taiwan stock news > Run workflow
-3. Actions > Update Taiwan market close > Run workflow
-4. 打開 Pages，確認主介面 v4.7.27 且持股與總覽都可見含息回本價
-5. 若是新網址，匯入個人 JSON 備份
-
-[功能回歸]
-node tests/test_breakeven.cjs  # 11 種損益／配股／配息／轉撥情境
+NEWS_STOCK v4.7.29 靜態檔案檢核
+主入口：index.html + 404.html
+主應用：assets/app.js、assets/app-core.css、assets/app-overrides.css
+新聞：news-center.js、news-center.css
+情報：portfolio-intelligence.js、portfolio-intelligence.css
+PWA：service-worker.js、manifest.webmanifest、離線頁與圖示
+資料：stock-directory.json、stock-news.json、market-close.json、market-history.json
+自動化：.github/workflows/ + scripts/update_*.py
+說明：README.md、GITHUB_重新部署操作說明.md、CHANGELOG.md、VERSION.txt、docs/
+測試：tests/test_breakeven.cjs
+完整性：SHA256SUMS.txt
+個人資料：未包含任何私人持股備份；更新前務必另外匯出 JSON

@@ -1,80 +1,70 @@
-# 安心股票簿｜NEWS_STOCK v4.7.27 Stable
+# 安心股票簿 NEWS_STOCK — V4.7.29 完整 GitHub 部署版
 
-這是一份可直接部署到 **GitHub Pages** 的完整正式版，不需要 Node.js、不需要 npm，也不需要付費 API。
+> 本 ZIP 是可直接上傳 **GitHub Pages** 的完整網站檔案，不是增量更新，不需 npm、不需 Node.js 或付費 API 才能使用。  
+> 版本基礎：V4.7.28（排版與含息回本價已修復）＋ V4.7.29（程式與文件整理）。
 
-## 目前整合功能
+## 功能
 
-- 交易紀錄、持股、股利、公司行動與損益統計
-- TWSE／TPEx 官方收盤價自動更新
-- 持股最新收盤價與交易日期加大醒目顯示、持有成本、目前市值、未實現損益、報酬率
-- **V4.7.27** 持股／總覽新增含息回本價；反映既有交易及領息、配股、券商轉撥
-- 總覽每檔個股額外顯示最近一個已同步交易日的收盤價、收盤日期與含息回本價
-- 持股情報中心與新聞收藏股票
-- 台股公開新聞自動抓取與 GitHub Actions 更新
-- 個股新聞相關性、公司事件／股價行情／市場題材分類
-- 核心事件、重大事件、同事件多來源合併
-- 個股新聞總覽、每日市場情報、事件研究與跨股比較
-- PWA，可加入手機／iPad 主畫面
-- Google Sheet + Apps Script 研究資料同步（選用）
+- 交易紀錄、持股／總覽、平均成本與含息回本價、股利、配股、公司行動、損益分析。
+- 台灣證交所／櫃買中心收盤行情（由 GitHub Actions 同步），附最後交易日期。
+- 新聞情報中心：股票消息、自動更新、重大事件、分類與收藏。
+- 持股情報中心：連結持股與市場新聞。
+- PWA 手機／iPad 主畫面、離線提示及快取更新。
+- 選用的 Google Apps Script / Sheet 整合。
 
-## 版本
+## GitHub 部署（重要）
 
-- 正式整合版：**v4.7.27**
-- 新聞中心原始功能：**v4.7.26**（持股介面及 Service Worker 更新為 v4.7.27）
-- 部署方式：GitHub Pages `main / (root)`
+1. **先備份資料：** 在舊網站「設定 → 資料備份／匯出」匯出完整 JSON。舊資料主要在**原瀏覽器 localStorage**，不在 ZIP 內。
+2. 解壓縮 ZIP，將**資料夾內的所有檔案與隱藏資料夾**放在 GitHub Repository 的**根目錄**（不要多包一層資料夾）。
+3. 保留 `.github/workflows/`、`scripts/`、`assets/`，並確認 `index.html`、`404.html` 與各資源上傳完整。
+4. 進入 GitHub → Settings → Pages：選 Deploy from a branch → `main` / `/(root)`。
+5. 進入 Actions 手動跑 `Update Taiwan stock news` 與 `Update Taiwan market close`，初次更新初始化資料。
+6. 用原網址重新整理，若仍見舊版，關閉所有舊分頁後重新開啟／重新整理（PWA 快取可能延遲更新）。
 
-## 重要資料說明
+完整操作與疑難排解：[`GITHUB_重新部署操作說明.md`](GITHUB_重新部署操作說明.md)。
 
-你的交易、持股、股利、公司行動等個人資料主要儲存在瀏覽器本機（localStorage），**不會因為把這個 ZIP 上傳 GitHub 就自動包含你的個人紀錄**。
+**重要：** GitHub 網頁「Upload files」不會自動刪除遠端原本存在但新版 ZIP 已清除的檔案（舊 `CHANGELOG-v*.txt` 與 `assets/index-*`）。它們不影響新版執行；若需要 Repository 完全乾淨，可另外刪除這些舊檔。不要刪除個人已儲存的資料備份。
 
-如果要換 Repository、換 GitHub Pages 網址、換裝置或清除瀏覽器資料，請先在目前系統內匯出完整 JSON 備份，再到新網址匯入。
-
-## 第一次部署後要做的事
-
-1. 啟用 GitHub Pages。
-2. 到 Actions 手動執行 **Update Taiwan stock news**。
-3. 再手動執行 **Update Taiwan market close**。
-4. 確認兩個 workflow 都出現綠色成功標記。
-5. 打開 GitHub Pages 網址，主系統標題含 `v4.7.27`；新聞中心沿用原有功能。
-
-完整步驟請看：
-
-**`GITHUB_重新部署操作說明.md`**
-
-## 主要檔案
+## 程式／檔案結構
 
 ```text
-index.html                         主程式
-404.html                           GitHub Pages 路由備援
-offline.html                       PWA 離線頁面
-news-center.js / news-center.css   新聞情報中心
+index.html                         主入口（共用 JS/CSS，不再內嵌幾 MB 程式）
+404.html                           GitHub Pages 入口備援（與主入口一致）
+assets/app.js                      持股主應用程式（已建置 bundle）
+assets/app-core.css                主程式基礎樣式
+assets/app-overrides.css           持股卡片響應式修正、歷史顯示修正
+news-center.js / news-center.css   新聞系統
 portfolio-intelligence.js / .css   持股情報中心
-service-worker.js                  PWA / 快取控制
-manifest.webmanifest               PWA manifest
-stock-directory.json               股票代號資料
-stock-news.json                    新聞資料（Actions 產生）
-market-close.json                  最新收盤價（Actions 產生）
-market-history.json                歷史行情（Actions 累積）
-scripts/                           GitHub Actions Python 程式
-.github/workflows/                 自動更新工作流程
-google-apps-script/                選用的跨裝置同步
-assets/                            主系統建置資源
+service-worker.js                  PWA 更新／快取管理
+manifest.webmanifest               安裝至主畫面設定
+stock-directory.json               股票代碼資料
+stock-news.json                    Actions 更新的新聞資料
+market-close.json                  Actions 更新的官方收盤價
+market-history.json                Actions 累積的市場歷史
+scripts/                           行情及新聞更新腳本／部署檢查工具
+.github/workflows/                 GitHub Actions 定期更新排程
+tests/test_breakeven.cjs           股利與回本價計算測試
+google-apps-script/                選用外部同步
+CHANGELOG.md                       本次更新紀錄
+docs/changelog/                    完整歷史版本紀錄
+docs/程式結構與維護說明.md             維護方式與注意事項
+SHA256SUMS.txt                     ZIP 內檔案完整性雜湊清單
 ```
 
-## 不要刪除
+**維護提醒：** `assets/app.js` 是上一版已建置、壓縮的 React bundle，並非完整可重新編譯的 JSX/TSX 專案。這次把原版共用程式抽離，不冒險重寫運算邏輯。保留原有計算與資料相容性；想進一步恢復元件原始碼，應取得原 React 專案的 source。原有 `assets/index-*.js/css` 是未被引用的舊建置產物，已清除。
 
-請保留 `.github`、`.nojekyll`、`scripts`、`assets`。尤其 `.github/workflows` 被刪除後，新聞與收盤價就不會自動更新。
+## 含息回本價規則
 
-## v4.7.27 含息回本價說明
+公式：`max(0, (剩餘持股成本 - 已歸屬現存股數的現金股利 - 資本返還) / 現存股數)`。
+無償配股會影響持股數量；部分賣出時已收股利依剩餘持股比例保留；未入帳及缺失歷史股利不會憑空列入；已登錄但未核對的股利可能是估算，請依實際入帳資料確認。
 
-**含息回本價／股 = MAX(0, (剩餘持有成本 − 分攤給現有持股的已收現金股利 − 現金返還) ÷ 現在持有股數)**。
+## 測試
 
-- 原平均成本保留不變，**不會改寫任何交易、股利或舊持股資料**。
-- 無償配股按照原有除權/發放公司行動紀錄變動股數；配股沒有重複加到買進成本。
-- 現金股利以系統登錄的發放日為收到日期，未到發放日不先折抵；已核對金額優先使用實際核對結果。未核對的自動紀錄仍以登錄的預計金額估算，請對照實際入帳明細。
-- 發生部分賣出時，已收現金收益按剩餘股數比例保留。已到除息日但未到發放日的股利歸屬，以除息當時資格股數追蹤，不會把除息後買進的新股錯當成原持股股利；券商轉撥會保留歸屬。
-- 歷史「實際股利」不再加回配股股數，避免期初庫存重複入帳。
-- 若在建立期初持股之前的股利沒有紀錄或期初成本已包含折抵，系統無法自行判斷歷史回本，請避免重複扣減。
-- 顯示數字為**未計未來賣出手續費及證交稅的現金調整後參考回本價**，不是保證成交的實際損益；精確損益請以券商成交及現金入帳單為準。
+開發驗證用（一般正常使用免執行）：
 
-**自我測試：** `node tests/test_breakeven.cjs`（需電腦上已有 Node.js；正常使用系統不需要安裝 Node）。
+```bash
+node tests/test_breakeven.cjs
+python scripts/check_release.py
+```
+
+其他細節見 `CHANGELOG.md`。

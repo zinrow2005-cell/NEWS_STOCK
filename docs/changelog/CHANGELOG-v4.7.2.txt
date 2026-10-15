@@ -1,0 +1,13 @@
+v4.7.2 Live News Pipeline — 免費新聞抓取修正版
+
+- 新增免費 Google News RSS 備援，不需要 API Key。
+- 保留 Yahoo 股市與中央社官方免費 RSS。
+- 新增重點個股 RSS 查詢（2330/2317/2454 等）供 smoke check 與近期覆蓋。
+- 新增全上市櫃輪巡：股票分 8 組，每半小時處理一組，約 4 小時完成一輪。
+- RSS 改為並行抓取、10 秒 timeout、最多 2 次，單一來源失效不再拖垮整批。
+- 全來源失敗且沒有舊資料時直接讓 Action 失敗，不再覆寫成 0 筆 JSON。
+- GitHub Action 新增 parser/股票辨識 self-test 與 non-empty validation。
+- 修正公司名稱包含關係誤判：聯發科不再同時誤抓「聯發」；多公司標題可同時辨識鴻海/廣達/聯發科。
+- Google News RSS 會保留實際 publisher 作為新聞來源。
+- 新聞中心若 JSON 成功但 0 筆，直接顯示來源狀態與 Action 操作提示。
+- PWA cache 升級為 news-v47.2。

@@ -1,0 +1,7 @@
+v2.7.0 — Event Case Database
+- Added dedicated Event Case Database tab.
+- Search historical events by topic/keyword.
+- Filter by event category, MA20/technical state, volume context, market bull/bear regime.
+- Filter by +5/+20 trading-day market outperformance/underperformance.
+- Added case result cards with market/industry excess return and technical context.
+- Keeps insufficient data explicit instead of fabricating results.
